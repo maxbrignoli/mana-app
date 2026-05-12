@@ -1,3 +1,9 @@
+# IDE / Editor specifici
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+
 # Miscellaneous
 *.class
 *.lock
