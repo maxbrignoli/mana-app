@@ -2,7 +2,10 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAIProvider } from './_lib/ai/index.js';
 import { getEnv } from './_lib/config/env.js';
 import { getSupabaseAdmin } from './_lib/db/supabase.js';
+import { sendError } from './_lib/http/errors.js';
+import { allowMethods } from './_lib/http/methods.js';
 import { logger } from './_lib/logging/logger.js';
+import { enforceRateLimit } from './_lib/rate-limit/enforce.js';
 
 interface HealthCheckResult {
   status: 'ok' | 'degraded' | 'error';
@@ -30,8 +33,12 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse,
 ): Promise<void> {
-  if (req.method !== 'GET') {
-    res.status(405).json({ error: 'Method not allowed' });
+  if (!allowMethods(req, res, ['GET'])) return;
+
+  try {
+    await enforceRateLimit(req, res, 'public');
+  } catch (error) {
+    sendError(res, error);
     return;
   }
 
