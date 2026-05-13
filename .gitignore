@@ -127,3 +127,8 @@ app.*.symbols
 .env
 .env.local
 .env.*.local
+
+# Node.js / Backend TypeScript
+node_modules/
+dist/
+*.tsbuildinfo

@@ -35,3 +35,18 @@ jobs:
 
       - name: Run tests
         run: flutter test
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Typecheck backend
+        run: npm run typecheck
+
+      - name: Lint backend
+        run: npm run lint
