@@ -60,7 +60,9 @@ Si imposta la **validazione del payload** ovunque: ogni endpoint controlla che l
 
 Si configura il **monitoring** di base: log strutturati, metriche di richieste/secondo, errori 4xx/5xx, latenze, costi per endpoint. Strumenti possibili: Vercel Analytics integrato, Sentry per gli errori applicativi.
 
-**Deliverable della fase:** backend con auth JWT, rate limit, game state lato server, monitoring attivo. Tutte le chiamate sono firmate e tracciate.
+Si implementa la **pipeline di safety per gli input utente**, descritta in dettaglio nel documento di progetto. Comprende: classificazione di ogni input (domanda di gioco / altro neutro / altro offensivo), verifica della formulazione delle domande, sistema di penalità progressive in gemme per linguaggio offensivo, gestione del rage level con decay temporale, validazione del personaggio in multiplayer, contatore abbandoni. Tecnologicamente sfrutta la Moderation API di OpenAI (gratuita) come primo filtro, combinata con una chiamata LLM leggera per classificazione semantica. Tutto è server-side, non manipolabile dal client.
+
+**Deliverable della fase:** backend con auth JWT, rate limit, game state lato server, safety pipeline attiva, monitoring attivo. Tutte le chiamate sono firmate e tracciate.
 
 ### Fase 4 — Integrazione AI
 
