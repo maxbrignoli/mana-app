@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from './_lib/db/supabase.js';
 import { notFound, sendError } from './_lib/http/errors.js';
 import { allowMethods } from './_lib/http/methods.js';
 import { logger } from './_lib/logging/logger.js';
+import { enforceRateLimit } from './_lib/rate-limit/enforce.js';
 
 /**
  * GET /api/me
@@ -11,6 +12,7 @@ import { logger } from './_lib/logging/logger.js';
  * Restituisce profilo e balance gemme dell'utente autenticato.
  *
  * Authentication: richiesta. Header Authorization: Bearer <jwt-supabase>.
+ * Rate limit: categoria 'profile' (60 req/min per utente).
  *
  * Response 200:
  *   {
@@ -28,6 +30,8 @@ export default async function handler(
 
   try {
     const user = await requireAuth(req);
+    await enforceRateLimit(req, res, 'profile', user.id);
+
     const supabase = getSupabaseAdmin();
 
     // Carichiamo profilo e gemme in parallelo per ridurre la latenza.
