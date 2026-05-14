@@ -26,6 +26,10 @@ const envSchema = z.object({
   UPSTASH_REDIS_REST_URL: z.string().url(),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
 
+  // Cifratura simmetrica per campi sensibili (AES-256-GCM)
+  // 32 byte in base64 = 44 caratteri.
+  ENCRYPTION_KEY: z.string().min(40),
+
   // Runtime
   NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
