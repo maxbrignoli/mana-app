@@ -18,6 +18,13 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
 
+  // AI runtime tuning
+  // Timeout per singola chiamata AI in millisecondi. Default 8000 (sotto il
+  // limite Vercel free 10s, lasciando margine per il resto dell'handler).
+  AI_TIMEOUT_MS: z.coerce.number().int().positive().default(8000),
+  // Numero massimo di tentativi per una chiamata AI (incluso il primo).
+  AI_MAX_RETRIES: z.coerce.number().int().min(1).max(5).default(3),
+
   // Supabase
   SUPABASE_URL: z.string().url(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
