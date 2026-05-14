@@ -26,3 +26,25 @@ export const endSingleGameBodySchema = z.object({
 });
 
 export type EndSingleGameBody = z.infer<typeof endSingleGameBodySchema>;
+
+/**
+ * Body per /api/games/single/move.
+ *
+ * Il payload dell'utente dipende dalla modalita':
+ * - mana_guesses: l'utente risponde alla domanda di Mana scegliendo uno dei
+ *   5 valori canonici. answerValue e' obbligatorio, userMessage opzionale.
+ * - user_guesses: l'utente fa una domanda in linguaggio naturale.
+ *   userMessage e' obbligatorio. Se l'utente sta tentando di indovinare,
+ *   tipicamente la domanda contiene il nome ("Sei Pikachu?").
+ */
+export const moveSingleGameBodySchema = z.object({
+  gameId: z.string().uuid(),
+  /** Per mode=mana_guesses: la risposta sì/no/maybe/dontKnow alla domanda di Mana. */
+  answerValue: z
+    .enum(['yes', 'no', 'maybe_yes', 'maybe_no', 'dont_know'])
+    .optional(),
+  /** Per mode=user_guesses: la domanda libera dell'utente. */
+  userMessage: z.string().min(1).max(500).optional(),
+});
+
+export type MoveSingleGameBody = z.infer<typeof moveSingleGameBodySchema>;
