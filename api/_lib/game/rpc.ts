@@ -180,3 +180,43 @@ export async function applyRageDecay(): Promise<{ updatedProfiles: number }> {
   }
   return { updatedProfiles: (data as number) ?? 0 };
 }
+
+/**
+ * Refund di 1 gemma quando una partita fallisce per problemi tecnici nostri.
+ *
+ * Atomicamente: marca la partita come 'abandoned', restituisce 1 gemma al
+ * balance, logga in audit_log con event_type 'gem_refunded_for_failure'.
+ *
+ * Ritorna:
+ * - { refunded: true, newBalance: N } se il refund e' avvenuto.
+ * - { refunded: false } se la partita era gia' chiusa (no-op silenzioso,
+ *   non e' un errore: significa che il flusso ha gia' chiuso la partita
+ *   altrove).
+ *
+ * Se la partita non esiste o non appartiene all'utente, lancia HttpError
+ * tramite mapRpcError. Errori di rete/DB risalgono come sono: il chiamante
+ * decide se loggarli o ignorarli (in genere il refund e' best-effort).
+ */
+export async function refundSingleGameGem(args: {
+  gameId: string;
+  userId: string;
+  reason: string;
+}): Promise<{ refunded: boolean; newBalance: number | null }> {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase.rpc('refund_single_game_gem', {
+    p_game_id: args.gameId,
+    p_user_id: args.userId,
+    p_reason: args.reason,
+  });
+
+  if (error) {
+    throw mapRpcError(error);
+  }
+
+  // La RPC ritorna NULL se la partita non era in_progress (no-op).
+  // Altrimenti ritorna il nuovo balance (int).
+  if (data === null || data === undefined) {
+    return { refunded: false, newBalance: null };
+  }
+  return { refunded: true, newBalance: data as number };
+}
