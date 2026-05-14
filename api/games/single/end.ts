@@ -1,11 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { requireAuth } from '../../_lib/auth/require-auth.js';
-import { endSingleGameBodySchema } from '../../_lib/game/schemas.js';
 import { endSingleGame } from '../../_lib/game/rpc.js';
-import { sendError } from '../../_lib/http/errors.js';
+import { endSingleGameBodySchema } from '../../_lib/game/schemas.js';
 import { allowMethods } from '../../_lib/http/methods.js';
 import { parseBody } from '../../_lib/http/parse-body.js';
 import { logger } from '../../_lib/logging/logger.js';
+import { withErrorHandling } from '../../_lib/monitoring/with-error-handling.js';
 import { enforceRateLimit } from '../../_lib/rate-limit/enforce.js';
 
 /**
@@ -29,38 +29,28 @@ import { enforceRateLimit } from '../../_lib/rate-limit/enforce.js';
  *   - 403 FORBIDDEN: la partita non appartiene all'utente
  *   - 400 BAD_REQUEST: partita gia' chiusa
  */
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse,
-): Promise<void> {
+async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (!allowMethods(req, res, ['POST'])) return;
 
-  try {
-    const user = await requireAuth(req);
-    await enforceRateLimit(req, res, 'game', user.id);
+  const user = await requireAuth(req);
+  await enforceRateLimit(req, res, 'game', user.id);
 
-    const body = parseBody(req, endSingleGameBodySchema);
+  const body = parseBody(req, endSingleGameBodySchema);
 
-    const game = await endSingleGame({
-      gameId: body.gameId,
-      userId: user.id,
-      result: body.result,
-    });
+  const game = await endSingleGame({
+    gameId: body.gameId,
+    userId: user.id,
+    result: body.result,
+  });
 
-    logger.info('single game ended', {
-      gameId: game.id,
-      userId: user.id,
-      result: game.result,
-      questionsUsed: game.questions_used,
-    });
+  logger.info('single game ended', {
+    gameId: game.id,
+    userId: user.id,
+    result: game.result,
+    questionsUsed: game.questions_used,
+  });
 
-    res.status(200).json({ game });
-  } catch (error) {
-    if (!(error instanceof Error) || error.name !== 'HttpError') {
-      logger.error('unexpected error in /api/games/single/end', {
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
-    sendError(res, error);
-  }
+  res.status(200).json({ game });
 }
+
+export default withErrorHandling('/api/games/single/end', handler);
