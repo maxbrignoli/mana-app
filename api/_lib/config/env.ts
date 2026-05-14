@@ -30,6 +30,10 @@ const envSchema = z.object({
   // 32 byte in base64 = 44 caratteri.
   ENCRYPTION_KEY: z.string().min(40),
 
+  // Sentry (opzionale): se non settato, error tracking e' disabilitato.
+  SENTRY_DSN: z.string().url().optional(),
+  SENTRY_ENVIRONMENT: z.string().optional(),
+
   // Runtime
   NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
