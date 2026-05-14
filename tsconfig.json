@@ -18,6 +18,6 @@
     "allowSyntheticDefaultImports": true,
     "isolatedModules": true
   },
-  "include": ["api/**/*.ts"],
+  "include": ["api/**/*.ts", "bench/**/*.ts"],
   "exclude": ["node_modules", "build", "ios", "android", "web", "lib", "test", "supabase"]
 }
