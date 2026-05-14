@@ -8,7 +8,7 @@ import type { Message } from '../../_lib/ai/types.js';
 import { requireAuth } from '../../_lib/auth/require-auth.js';
 import { decrypt, decryptOrNull, encrypt } from '../../_lib/crypto/encryption.js';
 import { getSupabaseAdmin } from '../../_lib/db/supabase.js';
-import { recordSingleMove } from '../../_lib/game/rpc.js';
+import { addRageEvent, recordSingleMove } from '../../_lib/game/rpc.js';
 import { moveSingleGameBodySchema } from '../../_lib/game/schemas.js';
 import type { AnswerValue, SingleGameRow } from '../../_lib/game/types.js';
 import {
@@ -22,6 +22,7 @@ import { allowMethods } from '../../_lib/http/methods.js';
 import { parseBody } from '../../_lib/http/parse-body.js';
 import { logger } from '../../_lib/logging/logger.js';
 import { enforceRateLimit } from '../../_lib/rate-limit/enforce.js';
+import { checkInputSafety, type SafetyVerdict } from '../../_lib/safety/pipeline.js';
 
 /**
  * POST /api/games/single/move
@@ -188,6 +189,47 @@ export default async function handler(
       throw badRequest('userMessage is required for user_guesses mode');
     }
 
+    // Safety pipeline: classifichiamo l'input prima di passarlo al modello
+    // di gioco. Rifiuti in 3 forme:
+    // - reject_neutral: rimbalzo cortese senza penalita'
+    // - reject_offensive_no_question: insulto puro -> rage event + penalita'
+    // - reject_offensive_question: domanda offensiva -> rage event + penalita'
+    const safety = await checkInputSafety(body.userMessage, 'game_move');
+
+    if (safety.verdict !== 'allow') {
+      const safetyOutcome = await handleSafetyRejection({
+        verdict: safety.verdict,
+        userId: user.id,
+        gameId: game.id,
+      });
+
+      logger.info('single game move rejected by safety', {
+        gameId: game.id,
+        userId: user.id,
+        verdict: safety.verdict,
+        classifierCategory: safety.classifierCategory,
+        moderationCategories: safety.moderationCategories,
+        moderationMaxScore: safety.moderationMaxScore,
+        reason: safety.reason,
+        gemPenalty: safetyOutcome.gemPenalty,
+        newRageLevel: safetyOutcome.newRageLevel,
+      });
+
+      res.status(400).json({
+        rejected: true,
+        verdict: safety.verdict,
+        message: safetyOutcome.userMessage,
+        ...(safetyOutcome.gemPenalty > 0
+          ? {
+              gemPenalty: safetyOutcome.gemPenalty,
+              newRageLevel: safetyOutcome.newRageLevel,
+              gemsRemaining: safetyOutcome.gemsRemaining,
+            }
+          : {}),
+      });
+      return;
+    }
+
     // Recupero personaggio segreto
     const secretCipher = game.target_character as unknown as Uint8Array | null;
     if (!secretCipher) {
@@ -287,5 +329,83 @@ function answerValueLabel(v: AnswerValue): string {
       return 'Non lo so';
     case 'guess':
       return '(tentativo)';
+  }
+}
+
+/**
+ * Gestisce un input rifiutato dalla safety pipeline.
+ *
+ * - reject_neutral: nessuna penalita', solo messaggio di rimbalzo.
+ *   Esempio: l'utente saluta o scrive una frase confusa. Mana lo invita a
+ *   tornare al gioco senza punirlo.
+ *
+ * - reject_offensive_no_question / reject_offensive_question: chiamiamo
+ *   addRageEvent che incrementa rage_level e scala la penalty in gemme
+ *   (1/2/5/10 in base al nuovo livello). Ritorniamo il messaggio di Mana
+ *   adattato al tipo di offesa.
+ *
+ * Se l'addRageEvent fallisce per qualche ragione, restituiamo penalty=0 e
+ * solo il messaggio: meglio non bloccare il flusso.
+ */
+async function handleSafetyRejection(args: {
+  verdict: Exclude<SafetyVerdict, 'allow'>;
+  userId: string;
+  gameId: string;
+}): Promise<{
+  userMessage: string;
+  gemPenalty: number;
+  newRageLevel: number;
+  gemsRemaining: number;
+}> {
+  if (args.verdict === 'reject_neutral') {
+    return {
+      userMessage:
+        'Non ho capito la tua domanda. Provami con una domanda sul personaggio: chiedi qualcosa di sì o no!',
+      gemPenalty: 0,
+      newRageLevel: 0,
+      gemsRemaining: 0,
+    };
+  }
+
+  const eventType =
+    args.verdict === 'reject_offensive_no_question'
+      ? 'insult_no_question'
+      : 'insult_in_question';
+
+  try {
+    const rage = await addRageEvent({
+      userId: args.userId,
+      eventType,
+      contextGameId: args.gameId,
+      contextGameType: 'single',
+    });
+
+    const baseMsg =
+      args.verdict === 'reject_offensive_question'
+        ? 'Le domande devono essere rispettose. Riprova in modo gentile.'
+        : 'Resta gentile, per favore. Torniamo al gioco?';
+
+    const penaltyMsg = `Hai perso ${rage.gem_penalty} gemm${
+      rage.gem_penalty === 1 ? 'a' : 'e'
+    } (livello scortesia: ${rage.new_rage_level}/4).`;
+
+    return {
+      userMessage: `${baseMsg} ${penaltyMsg}`,
+      gemPenalty: rage.gem_penalty,
+      newRageLevel: rage.new_rage_level,
+      gemsRemaining: rage.gems_remaining,
+    };
+  } catch (error) {
+    logger.error('failed to add rage event', {
+      userId: args.userId,
+      gameId: args.gameId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return {
+      userMessage: 'Resta gentile, per favore. Torniamo al gioco?',
+      gemPenalty: 0,
+      newRageLevel: 0,
+      gemsRemaining: 0,
+    };
   }
 }
