@@ -2,9 +2,9 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAIProvider } from './_lib/ai/index.js';
 import { getEnv } from './_lib/config/env.js';
 import { getSupabaseAdmin } from './_lib/db/supabase.js';
-import { sendError } from './_lib/http/errors.js';
 import { allowMethods } from './_lib/http/methods.js';
 import { logger } from './_lib/logging/logger.js';
+import { withErrorHandling } from './_lib/monitoring/with-error-handling.js';
 import { enforceRateLimit } from './_lib/rate-limit/enforce.js';
 
 interface HealthCheckResult {
@@ -25,30 +25,24 @@ interface HealthCheckResult {
  * Verifica salute del backend:
  * - validazione env vars
  * - istanziazione provider AI
- * - connessione a Supabase (query banale: SELECT 1)
+ * - connessione a Supabase (query banale)
  *
- * Non chiama il modello AI (per evitare costi a ogni health check).
+ * Non chiama il modello AI per evitare costi su ogni health check.
+ *
+ * I tre check sono *catturati a livello interno* per produrre un report
+ * aggregato: anche con un check fallito, l'endpoint risponde 200 con
+ * status='degraded'. Solo se tutti e tre falliscono ritorna 500.
+ *
+ * Errori inattesi al di fuori dei check interni sono gestiti dal wrapper
+ * withErrorHandling (log + Sentry + 500 generico).
  */
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse,
-): Promise<void> {
+async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (!allowMethods(req, res, ['GET'])) return;
-
-  try {
-    await enforceRateLimit(req, res, 'public');
-  } catch (error) {
-    sendError(res, error);
-    return;
-  }
+  await enforceRateLimit(req, res, 'public');
 
   const result: HealthCheckResult = {
     status: 'ok',
-    checks: {
-      env: 'ok',
-      ai_provider: 'ok',
-      supabase: 'ok',
-    },
+    checks: { env: 'ok', ai_provider: 'ok', supabase: 'ok' },
     timestamp: new Date().toISOString(),
   };
   const errors: string[] = [];
@@ -73,12 +67,8 @@ export default async function handler(
   // Check 3: Supabase raggiungibile
   try {
     const supabase = getSupabaseAdmin();
-    // Query banale solo per confermare che la connessione e' viva.
-    // Non leggiamo dati reali. count=exact + limit 0 non scarica righe.
     const { error } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
   } catch (error) {
     result.checks.supabase = 'error';
     errors.push(`supabase: ${error instanceof Error ? error.message : String(error)}`);
@@ -101,6 +91,8 @@ export default async function handler(
     logger.debug('health check ok', { provider: result.provider });
   }
 
-  const httpStatus = result.status === 'ok' ? 200 : result.status === 'degraded' ? 200 : 500;
+  const httpStatus = result.status === 'error' ? 500 : 200;
   res.status(httpStatus).json(result);
 }
+
+export default withErrorHandling('/api/health', handler);
