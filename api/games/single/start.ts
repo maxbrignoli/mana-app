@@ -1,15 +1,17 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAIProvider } from '../../_lib/ai/index.js';
+import { chatWithLengthRecovery } from '../../_lib/ai/length-recovery.js';
 import {
   buildCharacterChoicePrompt,
   buildSystemPromptManaGuesses,
 } from '../../_lib/ai/prompts/single-game.js';
+import type { ChatResponse } from '../../_lib/ai/types.js';
 import { requireAuth } from '../../_lib/auth/require-auth.js';
 import { encrypt } from '../../_lib/crypto/encryption.js';
 import { getSupabaseAdmin } from '../../_lib/db/supabase.js';
 import { recordSingleMove, startSingleGame } from '../../_lib/game/rpc.js';
 import { startSingleGameBodySchema } from '../../_lib/game/schemas.js';
-import { sendError } from '../../_lib/http/errors.js';
+import { HttpError, sendError } from '../../_lib/http/errors.js';
 import { allowMethods } from '../../_lib/http/methods.js';
 import { parseBody } from '../../_lib/http/parse-body.js';
 import { logger } from '../../_lib/logging/logger.js';
@@ -83,7 +85,7 @@ export default async function handler(
         maxQuestions: game.max_questions,
       });
 
-      const aiResponse = await ai.chat({
+      const aiResponse = await chatWithLengthRecovery(ai, {
         systemPrompt,
         messages: [
           {
@@ -95,7 +97,18 @@ export default async function handler(
         temperature: 0.7,
       });
 
+      assertNotContentFiltered(aiResponse, { gameId: game.id, phase: 'first_question' });
+
       const questionText = aiResponse.content.trim();
+
+      if (!questionText) {
+        logger.error('ai returned empty content', {
+          gameId: game.id,
+          provider: aiResponse.providerName,
+          finishReason: aiResponse.finishReason,
+        });
+        throw new HttpError(502, 'INTERNAL_ERROR', 'AI returned an empty response');
+      }
 
       // Persisto la prima mossa di Mana (actor='mana', incrementa questions_used)
       const move = await recordSingleMove({
@@ -133,14 +146,29 @@ export default async function handler(
       maxQuestions: game.max_questions,
     });
 
-    const choiceResponse = await ai.chat({
-      systemPrompt: choicePrompt,
-      messages: [{ role: 'user', content: 'Scegli ora.' }],
-      maxTokens: 30,
-      temperature: 0.9, // un po' di varieta' nelle scelte
-    });
+    const choiceResponse = await chatWithLengthRecovery(
+      ai,
+      {
+        systemPrompt: choicePrompt,
+        messages: [{ role: 'user', content: 'Scegli ora.' }],
+        maxTokens: 30,
+        temperature: 0.9, // un po' di varieta' nelle scelte
+      },
+      { maxTokensCap: 60 },
+    );
+
+    assertNotContentFiltered(choiceResponse, { gameId: game.id, phase: 'character_choice' });
 
     const character = choiceResponse.content.trim();
+
+    if (!character) {
+      logger.error('ai returned empty character choice', {
+        gameId: game.id,
+        provider: choiceResponse.providerName,
+        finishReason: choiceResponse.finishReason,
+      });
+      throw new HttpError(502, 'INTERNAL_ERROR', 'AI did not choose a character');
+    }
 
     // Persisto il personaggio cifrato in target_character
     const { error: updateError } = await supabase
@@ -173,4 +201,27 @@ export default async function handler(
     }
     sendError(res, error);
   }
+}
+
+/**
+ * Verifica che la risposta AI non sia stata bloccata dal content filter.
+ * Su rifiuto categorico, non c'e' senso ritentare: ritorniamo errore al client.
+ */
+function assertNotContentFiltered(
+  response: ChatResponse,
+  context: { gameId: string; phase: string },
+): void {
+  if (response.finishReason !== 'content_filter') return;
+
+  logger.error('ai content filter triggered', {
+    gameId: context.gameId,
+    phase: context.phase,
+    provider: response.providerName,
+  });
+
+  throw new HttpError(
+    502,
+    'INTERNAL_ERROR',
+    'The AI provider refused to generate a response. The game cannot proceed.',
+  );
 }

@@ -1,10 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAIProvider } from '../../_lib/ai/index.js';
+import { chatWithLengthRecovery } from '../../_lib/ai/length-recovery.js';
+import { isGuessOutcome, parseManaAnswer } from '../../_lib/ai/output/answer-parser.js';
 import {
   buildSystemPromptManaGuesses,
   buildSystemPromptUserGuesses,
 } from '../../_lib/ai/prompts/single-game.js';
-import type { Message } from '../../_lib/ai/types.js';
+import type { ChatResponse, Message } from '../../_lib/ai/types.js';
 import { requireAuth } from '../../_lib/auth/require-auth.js';
 import { decrypt, decryptOrNull, encrypt } from '../../_lib/crypto/encryption.js';
 import { getSupabaseAdmin } from '../../_lib/db/supabase.js';
@@ -147,14 +149,25 @@ export default async function handler(
         { role: 'user', content: answerValueLabel(body.answerValue) },
       ];
 
-      const aiResponse = await ai.chat({
+      const aiResponse = await chatWithLengthRecovery(ai, {
         systemPrompt,
         messages,
         maxTokens: 100,
         temperature: 0.7,
       });
 
+      assertNotContentFiltered(aiResponse, { gameId: game.id, mode: game.mode });
+
       const manaText = aiResponse.content.trim();
+
+      if (!manaText) {
+        logger.error('ai returned empty content', {
+          gameId: game.id,
+          provider: aiResponse.providerName,
+          finishReason: aiResponse.finishReason,
+        });
+        throw new HttpError(502, 'INTERNAL_ERROR', 'AI returned an empty response');
+      }
 
       const manaMove = await recordSingleMove({
         gameId: game.id,
@@ -260,18 +273,39 @@ export default async function handler(
       { role: 'user', content: body.userMessage },
     ];
 
-    const aiResponse = await ai.chat({
+    const aiResponse = await chatWithLengthRecovery(ai, {
       systemPrompt,
       messages,
       maxTokens: 100,
       temperature: 0.4, // piu' bassa: vogliamo risposte deterministiche su un personaggio noto
     });
 
+    assertNotContentFiltered(aiResponse, { gameId: game.id, mode: game.mode });
+
     const manaText = aiResponse.content.trim();
 
-    // Heuristic: se la risposta inizia per "Sì! Hai indovinato", segniamo was_correct=true
-    // (il prompt istruisce Mana a usare quella frase). Conferma vera vincita.
-    const wasGuessCorrect = /^s[ìi]!?\s*hai indovinato/i.test(manaText);
+    if (!manaText) {
+      logger.error('ai returned empty content', {
+        gameId: game.id,
+        provider: aiResponse.providerName,
+        finishReason: aiResponse.finishReason,
+      });
+      throw new HttpError(502, 'INTERNAL_ERROR', 'AI returned an empty response');
+    }
+
+    // Parsing strutturato della risposta. Distingue tra una delle 5 risposte
+    // canoniche (yes/no/maybe_yes/maybe_no/dont_know), un guess vincente,
+    // un guess perdente, oppure unknown se il modello e' sbavato troppo.
+    const parsed = parseManaAnswer(manaText);
+    const wasGuessCorrect = parsed.kind === 'correct_guess';
+
+    if (parsed.kind === 'unknown') {
+      logger.warn('mana answer not parseable', {
+        gameId: game.id,
+        provider: aiResponse.providerName,
+        rawSnippet: manaText.slice(0, 80),
+      });
+    }
 
     const manaMove = await recordSingleMove({
       gameId: game.id,
@@ -288,6 +322,8 @@ export default async function handler(
       manaMoveNumber: manaMove.move_number,
       provider: aiResponse.providerName,
       cost: aiResponse.usage.estimatedCostUsd,
+      parsedKind: parsed.kind,
+      parsedConfidence: parsed.confidence,
       guessedCorrect: wasGuessCorrect,
     });
 
@@ -297,9 +333,11 @@ export default async function handler(
         id: manaMove.move_id,
         move_number: manaMove.move_number,
         content: manaText,
+        kind: parsed.kind,
       },
       questionsUsed: manaMove.questions_used,
       guessedCorrect: wasGuessCorrect,
+      isGuessOutcome: isGuessOutcome(parsed.kind),
     });
   } catch (error) {
     if (!(error instanceof Error) || error.name !== 'HttpError') {
@@ -330,6 +368,34 @@ function answerValueLabel(v: AnswerValue): string {
     case 'guess':
       return '(tentativo)';
   }
+}
+
+/**
+ * Verifica che la risposta AI non sia stata bloccata dal content filter del
+ * provider. Quando lo e', non vogliamo salvare una stringa vuota o un
+ * messaggio nullo: lanciamo un errore strutturato che il chiamante propaga
+ * al client.
+ *
+ * Non c'e' retry: se il provider rifiuta categoricamente, riprovare non
+ * cambia il verdetto.
+ */
+function assertNotContentFiltered(
+  response: ChatResponse,
+  context: { gameId: string; mode: string },
+): void {
+  if (response.finishReason !== 'content_filter') return;
+
+  logger.error('ai content filter triggered', {
+    gameId: context.gameId,
+    mode: context.mode,
+    provider: response.providerName,
+  });
+
+  throw new HttpError(
+    502,
+    'INTERNAL_ERROR',
+    'The AI provider refused to generate a response for this turn. The move was not saved.',
+  );
 }
 
 /**
