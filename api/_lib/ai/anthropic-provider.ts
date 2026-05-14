@@ -1,16 +1,22 @@
 import Anthropic from '@anthropic-ai/sdk';
-import type { AIProvider, ChatParams, ChatResponse, FinishReason } from './types.js';
+import { getEnv } from '../config/env.js';
+import { logger } from '../logging/logger.js';
+import { mapAnthropicError } from './error-mapping-anthropic.js';
 import { estimateCostUsd } from './pricing.js';
+import { withRetry } from './retry.js';
+import { withTimeout } from './timeout.js';
+import type { AIProvider, ChatParams, ChatResponse, FinishReason } from './types.js';
 
 /**
  * Provider Anthropic. Supporta i modelli Claude (Haiku, Sonnet, Opus).
  *
- * Il caching del system prompt e' esplicito in Anthropic: marchiamo il system
- * con cache_control = ephemeral, cosi' il provider lo memorizza per ~5 minuti
- * e le chiamate successive con lo stesso system pagano la tariffa cached.
+ * Il caching del system prompt e' esplicito: marchiamo il system con
+ * cache_control = ephemeral. Le chiamate successive con stesso system pagano
+ * la tariffa cached.
  *
- * NOTA: usiamo client.beta.messages perche' prompt caching e' ancora in beta
- * nell'SDK attuale.
+ * Usa client.beta.messages perche' prompt caching e' ancora in beta nell'SDK.
+ *
+ * Resilienza: ogni chat() e' wrappato con timeout e retry, identico a OpenAI.
  */
 export class AnthropicProvider implements AIProvider {
   readonly name: string;
@@ -24,22 +30,47 @@ export class AnthropicProvider implements AIProvider {
   }
 
   async chat(params: ChatParams): Promise<ChatResponse> {
-    const response = await this.client.beta.messages.create({
-      model: this.model,
-      max_tokens: params.maxTokens ?? 1024,
-      temperature: params.temperature ?? 0.7,
-      system: [
-        {
-          type: 'text',
-          text: params.systemPrompt,
-          cache_control: { type: 'ephemeral' },
+    const env = getEnv();
+
+    return withRetry(
+      () => withTimeout(this.callOnce(params), env.AI_TIMEOUT_MS),
+      {
+        maxAttempts: env.AI_MAX_RETRIES,
+        onRetry: ({ attempt, error, delayMs }) => {
+          logger.warn('ai retry', {
+            provider: this.name,
+            attempt,
+            kind: error.kind,
+            message: error.message,
+            delayMs,
+          });
         },
-      ],
-      messages: params.messages.map((m) => ({
-        role: m.role,
-        content: m.content,
-      })),
-    });
+      },
+    );
+  }
+
+  private async callOnce(params: ChatParams): Promise<ChatResponse> {
+    let response;
+    try {
+      response = await this.client.beta.messages.create({
+        model: this.model,
+        max_tokens: params.maxTokens ?? 1024,
+        temperature: params.temperature ?? 0.7,
+        system: [
+          {
+            type: 'text',
+            text: params.systemPrompt,
+            cache_control: { type: 'ephemeral' },
+          },
+        ],
+        messages: params.messages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
+      });
+    } catch (error) {
+      throw mapAnthropicError(error);
+    }
 
     const textBlock = response.content.find((block) => block.type === 'text');
     const content = textBlock && textBlock.type === 'text' ? textBlock.text : '';
