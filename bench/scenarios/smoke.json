@@ -1,0 +1,35 @@
+{
+  "name": "smoke",
+  "description": "Mini dataset per smoke test del batch runner. 3 scenari veloci.",
+  "scenarios": [
+    {
+      "id": "smoke-mg-easy-01",
+      "mode": "mana_guesses",
+      "targetCharacter": "Pikachu",
+      "domains": ["cartoni"],
+      "difficulty": "easy",
+      "cultures": ["global"],
+      "age": 8,
+      "maxQuestions": 15
+    },
+    {
+      "id": "smoke-ug-easy-02",
+      "mode": "user_guesses",
+      "domains": ["personaggi-storici"],
+      "difficulty": "easy",
+      "cultures": ["global"],
+      "age": 10,
+      "maxQuestions": 15
+    },
+    {
+      "id": "smoke-mg-medium-03",
+      "mode": "mana_guesses",
+      "targetCharacter": "Albert Einstein",
+      "domains": ["personaggi-storici"],
+      "difficulty": "medium",
+      "cultures": ["global"],
+      "age": 12,
+      "maxQuestions": 20
+    }
+  ]
+}

@@ -13,6 +13,9 @@
 import type { Difficulty, GameMode } from '../../api/_lib/game/types.js';
 import type { ManaAnswerKind, ParseConfidence } from '../../api/_lib/ai/output/answer-parser.js';
 
+// Re-export per facilitare l'uso dal resto del bench.
+export type { ManaAnswerKind, ParseConfidence };
+
 /**
  * Esito finale di una partita self-played.
  * - mana_won/user_won: chi ha indovinato per primo (a seconda della mode)

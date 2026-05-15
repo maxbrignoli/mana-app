@@ -1,0 +1,288 @@
+{
+  "name": "default",
+  "description": "Dataset baseline per il bench self-play di Mana. 30 scenari distribuiti tra mana_guesses (12, con personaggi target curati) e user_guesses (18, target scelto da Mana). Difficoltà e culture variano per coprire diversi contesti d'uso.",
+  "scenarios": [
+    {
+      "id": "mg-hist-it-easy-01",
+      "mode": "mana_guesses",
+      "targetCharacter": "Leonardo da Vinci",
+      "domains": ["personaggi-storici"],
+      "difficulty": "easy",
+      "cultures": ["italian", "global"],
+      "age": 10,
+      "maxQuestions": 20
+    },
+    {
+      "id": "mg-hist-global-easy-02",
+      "mode": "mana_guesses",
+      "targetCharacter": "Albert Einstein",
+      "domains": ["personaggi-storici", "scienza"],
+      "difficulty": "easy",
+      "cultures": ["global"],
+      "age": 10,
+      "maxQuestions": 20
+    },
+    {
+      "id": "mg-hist-it-medium-03",
+      "mode": "mana_guesses",
+      "targetCharacter": "Garibaldi",
+      "domains": ["personaggi-storici"],
+      "difficulty": "medium",
+      "cultures": ["italian"],
+      "age": 12,
+      "maxQuestions": 20
+    },
+    {
+      "id": "mg-hist-global-medium-04",
+      "mode": "mana_guesses",
+      "targetCharacter": "Cleopatra",
+      "domains": ["personaggi-storici"],
+      "difficulty": "medium",
+      "cultures": ["global"],
+      "age": 12,
+      "maxQuestions": 20
+    },
+    {
+      "id": "mg-cartoni-easy-05",
+      "mode": "mana_guesses",
+      "targetCharacter": "Pikachu",
+      "domains": ["cartoni"],
+      "difficulty": "easy",
+      "cultures": ["global"],
+      "age": 8,
+      "maxQuestions": 20
+    },
+    {
+      "id": "mg-cartoni-easy-06",
+      "mode": "mana_guesses",
+      "targetCharacter": "Topolino",
+      "domains": ["cartoni"],
+      "difficulty": "easy",
+      "cultures": ["italian", "global"],
+      "age": 8,
+      "maxQuestions": 20
+    },
+    {
+      "id": "mg-cartoni-medium-07",
+      "mode": "mana_guesses",
+      "targetCharacter": "Goku",
+      "domains": ["cartoni"],
+      "difficulty": "medium",
+      "cultures": ["global"],
+      "age": 10,
+      "maxQuestions": 20
+    },
+    {
+      "id": "mg-sport-easy-08",
+      "mode": "mana_guesses",
+      "targetCharacter": "Diego Armando Maradona",
+      "domains": ["sport"],
+      "difficulty": "easy",
+      "cultures": ["italian", "global"],
+      "age": 12,
+      "maxQuestions": 20
+    },
+    {
+      "id": "mg-sport-medium-09",
+      "mode": "mana_guesses",
+      "targetCharacter": "Roger Federer",
+      "domains": ["sport"],
+      "difficulty": "medium",
+      "cultures": ["global"],
+      "age": 14,
+      "maxQuestions": 20
+    },
+    {
+      "id": "mg-musica-easy-10",
+      "mode": "mana_guesses",
+      "targetCharacter": "Wolfgang Amadeus Mozart",
+      "domains": ["musica"],
+      "difficulty": "easy",
+      "cultures": ["global"],
+      "age": 12,
+      "maxQuestions": 20
+    },
+    {
+      "id": "mg-musica-medium-11",
+      "mode": "mana_guesses",
+      "targetCharacter": "Lucio Battisti",
+      "domains": ["musica"],
+      "difficulty": "medium",
+      "cultures": ["italian"],
+      "age": 14,
+      "maxQuestions": 20
+    },
+    {
+      "id": "mg-scienza-medium-12",
+      "mode": "mana_guesses",
+      "targetCharacter": "Marie Curie",
+      "domains": ["personaggi-storici", "scienza"],
+      "difficulty": "medium",
+      "cultures": ["global"],
+      "age": 12,
+      "maxQuestions": 20
+    },
+    {
+      "id": "ug-hist-it-easy-01",
+      "mode": "user_guesses",
+      "domains": ["personaggi-storici"],
+      "difficulty": "easy",
+      "cultures": ["italian"],
+      "age": 10,
+      "maxQuestions": 20
+    },
+    {
+      "id": "ug-hist-it-easy-02",
+      "mode": "user_guesses",
+      "domains": ["personaggi-storici"],
+      "difficulty": "easy",
+      "cultures": ["italian", "global"],
+      "age": 10,
+      "maxQuestions": 20
+    },
+    {
+      "id": "ug-hist-global-medium-03",
+      "mode": "user_guesses",
+      "domains": ["personaggi-storici"],
+      "difficulty": "medium",
+      "cultures": ["global"],
+      "age": 12,
+      "maxQuestions": 20
+    },
+    {
+      "id": "ug-hist-medium-04",
+      "mode": "user_guesses",
+      "domains": ["personaggi-storici"],
+      "difficulty": "medium",
+      "cultures": ["italian", "global"],
+      "age": 12,
+      "maxQuestions": 20
+    },
+    {
+      "id": "ug-hist-hard-05",
+      "mode": "user_guesses",
+      "domains": ["personaggi-storici"],
+      "difficulty": "hard",
+      "cultures": ["global"],
+      "age": 14,
+      "maxQuestions": 20
+    },
+    {
+      "id": "ug-cartoni-easy-06",
+      "mode": "user_guesses",
+      "domains": ["cartoni"],
+      "difficulty": "easy",
+      "cultures": ["global"],
+      "age": 8,
+      "maxQuestions": 20
+    },
+    {
+      "id": "ug-cartoni-medium-07",
+      "mode": "user_guesses",
+      "domains": ["cartoni"],
+      "difficulty": "medium",
+      "cultures": ["italian", "global"],
+      "age": 10,
+      "maxQuestions": 20
+    },
+    {
+      "id": "ug-cartoni-hard-08",
+      "mode": "user_guesses",
+      "domains": ["cartoni"],
+      "difficulty": "hard",
+      "cultures": ["global"],
+      "age": 12,
+      "maxQuestions": 20
+    },
+    {
+      "id": "ug-sport-easy-09",
+      "mode": "user_guesses",
+      "domains": ["sport"],
+      "difficulty": "easy",
+      "cultures": ["italian", "global"],
+      "age": 12,
+      "maxQuestions": 20
+    },
+    {
+      "id": "ug-sport-medium-10",
+      "mode": "user_guesses",
+      "domains": ["sport"],
+      "difficulty": "medium",
+      "cultures": ["global"],
+      "age": 14,
+      "maxQuestions": 20
+    },
+    {
+      "id": "ug-musica-easy-11",
+      "mode": "user_guesses",
+      "domains": ["musica"],
+      "difficulty": "easy",
+      "cultures": ["global"],
+      "age": 12,
+      "maxQuestions": 20
+    },
+    {
+      "id": "ug-musica-medium-12",
+      "mode": "user_guesses",
+      "domains": ["musica"],
+      "difficulty": "medium",
+      "cultures": ["italian"],
+      "age": 14,
+      "maxQuestions": 20
+    },
+    {
+      "id": "ug-scienza-medium-13",
+      "mode": "user_guesses",
+      "domains": ["scienza"],
+      "difficulty": "medium",
+      "cultures": ["global"],
+      "age": 12,
+      "maxQuestions": 20
+    },
+    {
+      "id": "ug-multi-easy-14",
+      "mode": "user_guesses",
+      "domains": ["personaggi-storici", "cartoni"],
+      "difficulty": "easy",
+      "cultures": ["italian", "global"],
+      "age": 10,
+      "maxQuestions": 20
+    },
+    {
+      "id": "ug-multi-medium-15",
+      "mode": "user_guesses",
+      "domains": ["personaggi-storici", "musica", "scienza"],
+      "difficulty": "medium",
+      "cultures": ["global"],
+      "age": 12,
+      "maxQuestions": 20
+    },
+    {
+      "id": "ug-multi-hard-16",
+      "mode": "user_guesses",
+      "domains": ["personaggi-storici", "musica", "scienza", "sport"],
+      "difficulty": "hard",
+      "cultures": ["global"],
+      "age": 16,
+      "maxQuestions": 20
+    },
+    {
+      "id": "ug-no-age-17",
+      "mode": "user_guesses",
+      "domains": ["personaggi-storici"],
+      "difficulty": "medium",
+      "cultures": ["global"],
+      "age": null,
+      "maxQuestions": 20
+    },
+    {
+      "id": "ug-short-budget-18",
+      "mode": "user_guesses",
+      "domains": ["cartoni", "personaggi-storici"],
+      "difficulty": "easy",
+      "cultures": ["global"],
+      "age": 10,
+      "maxQuestions": 10
+    }
+  ]
+}

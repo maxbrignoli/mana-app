@@ -8,7 +8,8 @@
     "lint": "eslint . --ext .ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "bench": "tsx --env-file=.env bench/src/cli.ts"
+    "bench": "tsx --env-file=.env bench/src/cli.ts",
+    "bench:batch": "tsx --env-file=.env bench/src/batch-cli.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.0",
