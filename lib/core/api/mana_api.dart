@@ -72,9 +72,27 @@ class ManaApi {
     return _get('/api/health', authRequired: false);
   }
 
-  /// GET /api/me. Profilo + balance gemme dell'utente autenticato.
+  /// GET /api/me. Profilo + balance gemme + stats dell'utente autenticato.
   Future<Map<String, dynamic>> getMe() async {
     return _get('/api/me');
+  }
+
+  /// PATCH /api/me. Aggiorna i campi modificabili del profilo
+  /// (display_name, avatar_id). Almeno uno dei due deve essere fornito.
+  /// Ritorna il profilo aggiornato.
+  Future<Map<String, dynamic>> patchMe({
+    String? displayName,
+    String? avatarId,
+  }) async {
+    final body = <String, String>{};
+    if (displayName != null) body['display_name'] = displayName;
+    if (avatarId != null) body['avatar_id'] = avatarId;
+    if (body.isEmpty) {
+      throw ArgumentError(
+        'patchMe richiede almeno un campo tra displayName e avatarId',
+      );
+    }
+    return _patch('/api/me', body);
   }
 
   // -------------------------------------------------------------------------
@@ -89,6 +107,24 @@ class ManaApi {
     try {
       final response = await _dio.get<dynamic>(
         path,
+        options: Options(extra: {'authRequired': authRequired}),
+      );
+      return _unwrapResponse(response);
+    } on DioException catch (e) {
+      throw _mapDioError(e);
+    }
+  }
+
+  /// PATCH generico con gestione errori uniforme.
+  Future<Map<String, dynamic>> _patch(
+    String path,
+    Map<String, dynamic> body, {
+    bool authRequired = true,
+  }) async {
+    try {
+      final response = await _dio.patch<dynamic>(
+        path,
+        data: body,
         options: Options(extra: {'authRequired': authRequired}),
       );
       return _unwrapResponse(response);

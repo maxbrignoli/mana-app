@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/api/mana_api.dart';
 import '../../main.dart' show manaApi;
+import '../account/avatars.dart';
 
-/// Home post-login. Per un utente ospite (anonimo) mostra display_name
-/// ('Ospite NNNN') + balance gemme + bottone logout.
+/// Home post-login. Mostra avatar + display_name + gemme + accesso al profilo.
 ///
-/// Verra' arricchita nei prossimi PR con:
-/// - banner "Crea un account" per gli utenti anonimi
-/// - bottone per iniziare una partita
-/// - link a profilo, statistiche, ecc.
+/// Verra' arricchita nei prossimi PR con un grande bottone "Inizia partita".
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -19,21 +17,17 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  Future<Map<String, dynamic>>? _profileFuture;
+  Future<Map<String, dynamic>>? _meFuture;
 
   @override
   void initState() {
     super.initState();
-    _profileFuture = _loadProfile();
-  }
-
-  Future<Map<String, dynamic>> _loadProfile() {
-    return manaApi.getMe();
+    _meFuture = manaApi.getMe();
   }
 
   void _refresh() {
     setState(() {
-      _profileFuture = _loadProfile();
+      _meFuture = manaApi.getMe();
     });
   }
 
@@ -52,21 +46,18 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: _refresh,
           ),
           IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: () async {
-              await Supabase.instance.client.auth.signOut();
-            },
+            icon: const Icon(Icons.person),
+            tooltip: 'Profilo',
+            onPressed: () => context.go('/account'),
           ),
         ],
       ),
       body: FutureBuilder<Map<String, dynamic>>(
-        future: _profileFuture,
+        future: _meFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
           if (snapshot.hasError) {
             return _errorView(snapshot.error!);
           }
@@ -76,6 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
           final gems = (data['gems'] as Map?) ?? const {};
           final displayName =
               (profile['display_name'] as String?) ?? '(senza nome)';
+          final avatar = avatarFromId(profile['avatar_id'] as String?);
           final balance = (gems['balance'] as num?)?.toInt() ?? 0;
 
           return Padding(
@@ -103,7 +95,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
+                CircleAvatar(
+                  radius: 48,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer,
+                  child: Icon(
+                    avatar.icon,
+                    size: 48,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+                ),
+                const SizedBox(height: 16),
                 Text(
                   'Benvenuto',
                   style: Theme.of(context).textTheme.titleMedium,
