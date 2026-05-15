@@ -132,3 +132,4 @@ app.*.symbols
 node_modules/
 dist/
 *.tsbuildinfo
+android/.kotlin/
