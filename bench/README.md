@@ -20,19 +20,25 @@ Due agenti, entrambi alimentati dallo stesso modello AI ma con prompt diversi:
 
 Il runner (`runner.ts`) coordina i turni e produce un `GameTrace` serializzabile.
 
-## Stato attuale (PR #1 della Fase 5)
+## Stato attuale (PR #2 della Fase 5)
 
 ✅ Tipi del trace
 ✅ Prompt del bot utente
 ✅ Agenti (`ManaAgent`, `UserBot`)
 ✅ Runner di una singola partita (entrambe le modalità)
-✅ CLI per smoke test
+✅ CLI per smoke test single-game
+✅ Dataset di scenari (`bench/scenarios/default.json`, 30 scenari)
+✅ Batch runner con concurrency configurabile
+✅ Reporting aggregato (per modalità, difficoltà, dominio + stats parser)
+✅ CLI batch (`npm run bench:batch`)
 
-⏳ **In arrivo**: dataset di scenari, runner massivo, reporting aggregato, analisi sul parser, tuning iterativo dei prompt.
+⏳ **In arrivo**: analisi del parser su dati reali, tuning iterativo dei prompt.
 
 ## Esempi d'uso
 
 Richiede `OPENAI_API_KEY` nel file `.env` alla root del repo.
+
+### Single game (smoke test)
 
 ```bash
 # modalità mana_guesses: Mana deve indovinare Pikachu
@@ -55,6 +61,29 @@ npm run bench -- \
 # output in JSON puro (utile per pipe verso altri tool)
 npm run bench -- --mode user_guesses --domains musica --difficulty hard --max 20 --json
 ```
+
+### Batch run (per analisi aggregate)
+
+```bash
+# Run del dataset default (30 scenari) con concurrency 4
+npm run bench:batch
+
+# Concorrenza custom + salvataggio traces e report su disco
+npm run bench:batch -- \
+  --scenarios default \
+  --concurrency 4 \
+  --output-traces /tmp/bench-traces.json \
+  --output-report /tmp/bench-report.json
+
+# Modalità silenziosa (solo errori)
+npm run bench:batch -- --quiet
+```
+
+### Costo stimato
+
+Con `gpt-5.4-mini` (default) e dataset default (30 scenari):
+- ~$0.005 medio per partita × 30 = **~$0.15 per run completo**
+- ~10 minuti con concurrency=4
 
 ## Cosa NON fa il bench
 
