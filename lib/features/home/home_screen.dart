@@ -32,21 +32,15 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              'Ciao!',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            Text('Ciao!', style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: 8),
-            Text(
-              email,
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
+            Text(email, style: Theme.of(context).textTheme.bodyLarge),
             const SizedBox(height: 16),
             Text(
               'Placeholder home. Costruiremo il gioco qui nei prossimi PR.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               textAlign: TextAlign.center,
             ),
           ],

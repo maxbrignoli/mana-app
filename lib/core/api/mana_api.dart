@@ -46,8 +46,10 @@ class ManaApi {
   final SupabaseClient _supabase;
 
   ManaApi({Dio? dio, SupabaseClient? supabase})
-      : _dio = dio ??
-            Dio(BaseOptions(
+    : _dio =
+          dio ??
+          Dio(
+            BaseOptions(
               baseUrl: AppConfig.backendBaseUrl,
               connectTimeout: const Duration(seconds: 10),
               receiveTimeout: const Duration(seconds: 15),
@@ -55,8 +57,9 @@ class ManaApi {
               // Non lanciamo eccezione sui 4xx: le mappiamo come ManaApiException
               // (piu' utili al chiamante della DioException grezza).
               validateStatus: (status) => status != null && status < 600,
-            )),
-        _supabase = supabase ?? Supabase.instance.client {
+            ),
+          ),
+      _supabase = supabase ?? Supabase.instance.client {
     _dio.interceptors.add(_AuthInterceptor(_supabase));
   }
 
@@ -147,10 +150,7 @@ class _AuthInterceptor extends Interceptor {
   _AuthInterceptor(this._supabase);
 
   @override
-  void onRequest(
-    RequestOptions options,
-    RequestInterceptorHandler handler,
-  ) {
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     final authRequired = options.extra['authRequired'] != false;
     final session = _supabase.auth.currentSession;
 

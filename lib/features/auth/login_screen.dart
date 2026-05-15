@@ -26,8 +26,8 @@ class LoginScreen extends StatelessWidget {
               Text(
                 'Placeholder. Verra sostituita nei prossimi PR.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],

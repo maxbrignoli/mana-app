@@ -30,18 +30,9 @@ GoRouter buildAppRouter(SupabaseClient supabase) {
     refreshListenable: authListenable,
     debugLogDiagnostics: kDebugMode,
     routes: [
-      GoRoute(
-        path: '/',
-        builder: (context, state) => const SplashScreen(),
-      ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
-      GoRoute(
-        path: '/home',
-        builder: (context, state) => const HomeScreen(),
-      ),
+      GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
     ],
     redirect: (context, state) {
       final isLoggedIn = supabase.auth.currentSession != null;

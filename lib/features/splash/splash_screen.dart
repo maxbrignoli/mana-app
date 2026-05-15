@@ -14,18 +14,14 @@ class SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.auto_awesome,
-              size: 80,
-              color: Color(0xFF4A148C),
-            ),
+            const Icon(Icons.auto_awesome, size: 80, color: Color(0xFF4A148C)),
             const SizedBox(height: 16),
             Text(
               'Mana',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF4A148C),
-                  ),
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF4A148C),
+              ),
             ),
             const SizedBox(height: 24),
             const CircularProgressIndicator(),

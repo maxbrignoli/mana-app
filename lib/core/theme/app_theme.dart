@@ -16,19 +16,19 @@ class AppTheme {
 
   /// Theme principale (light). Material 3 + ColorScheme.fromSeed.
   static ThemeData get light => ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: _seedColor),
-        useMaterial3: true,
-        // Densita' visiva confortevole su mobile.
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      );
+    colorScheme: ColorScheme.fromSeed(seedColor: _seedColor),
+    useMaterial3: true,
+    // Densita' visiva confortevole su mobile.
+    visualDensity: VisualDensity.adaptivePlatformDensity,
+  );
 
   /// Theme dark, per completezza. Stesso seme.
   static ThemeData get dark => ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: _seedColor,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      );
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: _seedColor,
+      brightness: Brightness.dark,
+    ),
+    useMaterial3: true,
+    visualDensity: VisualDensity.adaptivePlatformDensity,
+  );
 }
