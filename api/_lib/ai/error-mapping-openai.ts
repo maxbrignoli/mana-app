@@ -33,8 +33,18 @@ export function mapOpenAIError(error: unknown): AIError {
     return new AINetworkError('OpenAI connection error', error);
   }
 
-  // 429 rate limit
+  // 429 puo' significare due cose distinte in OpenAI:
+  // - rate limit "vero" (troppe RPM): retryable, di solito con retry-after
+  // - insufficient_quota (account senza credito): NON retryable, fare
+  //   retry e' inutile e maschera l'errore reale al chiamante
   if (error instanceof OpenAI.RateLimitError) {
+    const code = (error as { code?: string | null }).code;
+    if (code === 'insufficient_quota') {
+      return new AIClientError(
+        'OpenAI quota exceeded: check billing / plan',
+        summarize(error),
+      );
+    }
     const retryAfterHeader = readRetryAfterHeader(error.headers);
     return new AIRateLimitError(
       'OpenAI rate limit exceeded',
