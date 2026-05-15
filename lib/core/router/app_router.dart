@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../features/account/account_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/splash/splash_screen.dart';
 
@@ -36,6 +37,10 @@ GoRouter buildAppRouter(SupabaseClient supabase) {
     routes: [
       GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
       GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+      GoRoute(
+        path: '/account',
+        builder: (context, state) => const AccountScreen(),
+      ),
     ],
     redirect: (context, state) {
       final isLoggedIn = supabase.auth.currentSession != null;
@@ -49,7 +54,7 @@ GoRouter buildAppRouter(SupabaseClient supabase) {
       }
 
       // Schermate protette: rispedisci a splash se non autenticato.
-      const protectedRoutes = {'/home'};
+      const protectedRoutes = {'/home', '/account'};
       if (protectedRoutes.contains(location) && !isLoggedIn) {
         return '/';
       }
