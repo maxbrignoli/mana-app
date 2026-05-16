@@ -229,10 +229,7 @@ class _ProfileBody extends StatelessWidget {
               FilledButton.icon(
                 icon: const Icon(Icons.person_add),
                 label: const Text('Crea un account / Accedi'),
-                onPressed: () => _showComingSoon(
-                  context,
-                  'La registrazione arrivera nel prossimo PR.',
-                ),
+                onPressed: () => context.push('/account/upgrade'),
               ),
             ] else ...[
               ListTile(
@@ -344,12 +341,6 @@ class _ProfileBody extends StatelessWidget {
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Errore: $e')));
     }
-  }
-
-  void _showComingSoon(BuildContext context, String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
