@@ -56,3 +56,8 @@ jobs:
 
       - name: Lint backend
         run: npm run lint
+
+      - name: Test backend
+        # Esegue i test vitest del backend (api/_lib/**). I test sono unitari
+        # (parser, helpers): non toccano DB ne' AI provider reali.
+        run: npm test
