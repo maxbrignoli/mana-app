@@ -133,6 +133,36 @@ class ManaApi {
     }
   }
 
+  /// POST generico con gestione errori uniforme. Espone l'interfaccia base
+  /// per chiamate API che modificano lo stato (create/azione). Usato dai
+  /// moduli specifici di gioco (es. GameApi) tramite il metodo pubblico
+  /// [post].
+  Future<Map<String, dynamic>> _post(
+    String path,
+    Map<String, dynamic> body, {
+    bool authRequired = true,
+  }) async {
+    try {
+      final response = await _dio.post<dynamic>(
+        path,
+        data: body,
+        options: Options(extra: {'authRequired': authRequired}),
+      );
+      return _unwrapResponse(response);
+    } on DioException catch (e) {
+      throw _mapDioError(e);
+    }
+  }
+
+  /// Wrapper pubblico per GET generico, usato dai moduli specifici di gioco
+  /// (es. GameApi) per costruire i propri endpoint sopra ManaApi senza
+  /// dover ricreare la logica di autenticazione/error mapping.
+  Future<Map<String, dynamic>> get(String path) => _get(path);
+
+  /// Wrapper pubblico per POST generico (vedi [get]).
+  Future<Map<String, dynamic>> post(String path, Map<String, dynamic> body) =>
+      _post(path, body);
+
   Map<String, dynamic> _unwrapResponse(Response<dynamic> response) {
     final status = response.statusCode ?? 0;
     final data = response.data;
