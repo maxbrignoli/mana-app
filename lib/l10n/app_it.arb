@@ -95,5 +95,32 @@
   "avatarKnight": "Cavaliere",
   "avatarStar": "Stella",
   "avatarCrystal": "Cristallo",
-  "avatarOwl": "Gufo"
+  "avatarOwl": "Gufo",
+
+  "homeStartGameAction": "Inizia partita",
+
+  "gameNewTitle": "Nuova partita",
+  "gameModeSection": "Modalita'",
+  "gameModeUserGuesses": "Indovino io",
+  "gameModeUserGuessesDescription": "Mana sceglie un personaggio segreto. Tu fai domande per scoprire chi e'.",
+  "gameModeManaGuesses": "Indovina Mana",
+  "gameModeManaGuessesDescription": "Tu pensi a un personaggio. Mana fa domande si'/no per indovinare chi e'.",
+  "gameDomainsSection": "Argomenti",
+  "gameDomainsHint": "Scegli almeno un argomento. Mana scegliera' un personaggio fra questi.",
+  "gameDifficultySection": "Difficolta'",
+  "difficultyEasy": "Facile",
+  "difficultyMedium": "Media",
+  "difficultyHard": "Difficile",
+  "gameStartAction": "Inizia",
+  "gameCostHint": "Costa 1 gemma",
+
+  "domainHistoricalCharacters": "Personaggi storici",
+  "domainCartoons": "Cartoni e anime",
+  "domainSports": "Sport",
+  "domainMusic": "Musica",
+  "domainScience": "Scienza",
+
+  "errorInsufficientGems": "Ti serve almeno 1 gemma per giocare. Aspetta la rigenerazione o procurati altre gemme.",
+  "errorAiUnavailable": "Mana e' momentaneamente non disponibile. Riprova tra poco.",
+  "errorRateLimited": "Troppe richieste. Rallenta un attimo e riprova fra poco."
 }

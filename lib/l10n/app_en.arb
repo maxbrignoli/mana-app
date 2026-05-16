@@ -214,5 +214,61 @@
   "avatarCrystal": "Crystal",
   "@avatarCrystal": {},
   "avatarOwl": "Owl",
-  "@avatarOwl": {}
+  "@avatarOwl": {},
+
+  "homeStartGameAction": "Start game",
+  "@homeStartGameAction": {},
+
+  "gameNewTitle": "New game",
+  "@gameNewTitle": {},
+  "gameModeSection": "Mode",
+  "@gameModeSection": {},
+  "gameModeUserGuesses": "I guess",
+  "@gameModeUserGuesses": {
+    "description": "Game mode where the user asks questions and Mana answers about a secret character it picked."
+  },
+  "gameModeUserGuessesDescription": "Mana picks a secret character. You ask questions to figure out who it is.",
+  "@gameModeUserGuessesDescription": {},
+  "gameModeManaGuesses": "Mana guesses",
+  "@gameModeManaGuesses": {
+    "description": "Game mode where the user thinks of a character and Mana asks yes/no questions."
+  },
+  "gameModeManaGuessesDescription": "You think of a character. Mana asks yes/no questions to guess who.",
+  "@gameModeManaGuessesDescription": {},
+  "gameDomainsSection": "Topics",
+  "@gameDomainsSection": {
+    "description": "Section title for the list of character topics Mana can pick from."
+  },
+  "gameDomainsHint": "Pick at least one topic. Mana will choose a character within these.",
+  "@gameDomainsHint": {},
+  "gameDifficultySection": "Difficulty",
+  "@gameDifficultySection": {},
+  "difficultyEasy": "Easy",
+  "@difficultyEasy": {},
+  "difficultyMedium": "Medium",
+  "@difficultyMedium": {},
+  "difficultyHard": "Hard",
+  "@difficultyHard": {},
+  "gameStartAction": "Start",
+  "@gameStartAction": {},
+  "gameCostHint": "Costs 1 gem",
+  "@gameCostHint": {},
+
+  "domainHistoricalCharacters": "Historical figures",
+  "@domainHistoricalCharacters": {},
+  "domainCartoons": "Cartoons & anime",
+  "@domainCartoons": {},
+  "domainSports": "Sports",
+  "@domainSports": {},
+  "domainMusic": "Music",
+  "@domainMusic": {},
+  "domainScience": "Science",
+  "@domainScience": {},
+
+  "errorInsufficientGems": "You need at least 1 gem to play. Wait for regeneration or get more gems.",
+  "@errorInsufficientGems": {},
+  "errorAiUnavailable": "Mana is temporarily unavailable. Please try again in a moment.",
+  "@errorAiUnavailable": {},
+  "errorRateLimited": "Too many requests. Please slow down and try again shortly.",
+  "@errorRateLimited": {}
 }

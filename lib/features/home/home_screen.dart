@@ -128,11 +128,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 const SizedBox(height: 32),
-                Text(
-                  l.homePlaceholder,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                FilledButton.icon(
+                  onPressed: () => context.go('/game/new'),
+                  icon: const Icon(Icons.play_arrow),
+                  label: Text(l.homeStartGameAction),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(52),
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
                   ),
                 ),
               ],

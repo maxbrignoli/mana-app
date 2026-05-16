@@ -7,6 +7,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../features/account/account_screen.dart';
 import '../../features/account/password_reset_screen.dart';
 import '../../features/account/upgrade_screen.dart';
+import '../../features/game/game_screen.dart';
+import '../../features/game/new_game_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/splash/splash_screen.dart';
 
@@ -40,6 +42,25 @@ GoRouter buildAppRouter(SupabaseClient supabase) {
       GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
       GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
       GoRoute(
+        path: '/game/new',
+        builder: (context, state) => const NewGameScreen(),
+      ),
+      GoRoute(
+        path: '/game/:id',
+        builder: (context, state) {
+          // `extra` viene popolato da NewGameScreen al successo di start:
+          // contiene { game, firstManaMove? }. E' un'ottimizzazione: la
+          // schermata di gioco vera lo usera' come stato iniziale invece
+          // di rifare un GET. Se l'utente apre l'URL direttamente o ricarica
+          // la pagina, `extra` e' null e la schermata fara' GET di fallback.
+          final initialState = state.extra as Map<String, dynamic>?;
+          return GameScreen(
+            gameId: state.pathParameters['id']!,
+            initialState: initialState,
+          );
+        },
+      ),
+      GoRoute(
         path: '/account',
         builder: (context, state) => const AccountScreen(),
         routes: [
@@ -66,9 +87,12 @@ GoRouter buildAppRouter(SupabaseClient supabase) {
       }
 
       // Schermate protette: rispedisci a splash se non autenticato.
-      // Includono tutte le rotte sotto /account (upgrade, password-reset).
+      // Includono tutte le rotte sotto /account (upgrade, password-reset)
+      // e tutte le rotte di gioco /game/*.
       final isProtected =
-          location == '/home' || location.startsWith('/account');
+          location == '/home' ||
+          location.startsWith('/account') ||
+          location.startsWith('/game');
       if (isProtected && !isLoggedIn) {
         return '/';
       }
