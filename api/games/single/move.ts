@@ -133,12 +133,13 @@ async function handler(
     });
 
     // Costruisco system prompt
+    // In mana_guesses NON passiamo domains: Mana deve indagare alla cieca
+    // anche il tipo di personaggio. Vedi prompts/single-game.ts.
     const systemPrompt = buildSystemPromptManaGuesses({
       mode: 'mana_guesses',
       age,
       difficulty: game.difficulty,
       cultures: game.culture ?? [],
-      domains: game.domain_selected ?? [],
       maxQuestions: game.max_questions,
     });
 

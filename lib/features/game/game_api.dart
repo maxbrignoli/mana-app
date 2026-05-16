@@ -63,8 +63,11 @@ class GameApi {
   ///
   /// Parametri:
   /// - [mode]: chi indovina chi
-  /// - [domains]: lista di domini (es. ['personaggi-storici', 'sport']);
-  ///   almeno 1, massimo 20
+  /// - [domains]: lista di domini (es. ['personaggi-storici', 'sport']).
+  ///   OBBLIGATORIO solo per [SingleGameMode.userGuesses] (Mana sceglie il
+  ///   personaggio dentro questi domini). In [SingleGameMode.manaGuesses]
+  ///   non ha senso: l'utente pensa al personaggio alla cieca, deve essere
+  ///   omesso (`null`). Massimo 20 elementi.
   /// - [difficulty]: easy / medium / hard
   /// - [cultures]: lista di codici cultura (es. ['it', 'global']); almeno 1,
   ///   massimo 10
@@ -72,13 +75,24 @@ class GameApi {
   ///   default lato server)
   Future<Map<String, dynamic>> startSingleGame({
     required SingleGameMode mode,
-    required List<String> domains,
+    List<String>? domains,
     required Difficulty difficulty,
     required List<String> cultures,
     int? maxQuestions,
   }) {
-    if (domains.isEmpty || domains.length > 20) {
-      throw ArgumentError('domains: richiesti tra 1 e 20 elementi');
+    // Validazione dei domains in base alla modalita': in user_guesses sono
+    // obbligatori (Mana li usa per scegliere il personaggio); in mana_guesses
+    // sono ignorati e per chiarezza ci aspettiamo che non vengano passati.
+    if (mode == SingleGameMode.userGuesses) {
+      if (domains == null || domains.isEmpty || domains.length > 20) {
+        throw ArgumentError(
+          'domains: in modalita userGuesses sono obbligatori (tra 1 e 20 elementi)',
+        );
+      }
+    } else {
+      if (domains != null && domains.length > 20) {
+        throw ArgumentError('domains: massimo 20 elementi');
+      }
     }
     if (cultures.isEmpty || cultures.length > 10) {
       throw ArgumentError('cultures: richiesti tra 1 e 10 elementi');
@@ -89,9 +103,10 @@ class GameApi {
 
     final body = <String, dynamic>{
       'mode': mode.wireValue,
-      'domains': domains,
       'difficulty': difficulty.wireValue,
       'culture': cultures,
+      // ignore: use_null_aware_elements
+      if (domains != null && domains.isNotEmpty) 'domains': domains,
       // ignore: use_null_aware_elements
       if (maxQuestions != null) 'maxQuestions': maxQuestions,
     };

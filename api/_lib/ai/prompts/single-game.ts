@@ -27,7 +27,13 @@ export interface SinglePromptParams {
   age: number | null;
   difficulty: Difficulty;
   cultures: string[];
-  domains: string[];
+  /**
+   * Domini scelti dall'utente. Obbligatori per user_guesses (Mana sceglie
+   * il personaggio segreto entro questi domini). Per mana_guesses sono
+   * irrilevanti: e' l'utente che ha pensato al personaggio alla cieca, e
+   * Mana deve indagare anche il tipo. In quel caso accettiamo `undefined`.
+   */
+  domains?: string[];
   /** Personaggio segreto, solo per user_guesses. Il modello DEVE non rivelarlo. */
   secretCharacter?: string;
   /** Limite domande disponibili nella partita. */
@@ -80,7 +86,7 @@ export function buildSystemPromptManaGuesses(p: SinglePromptParams): string {
 In questa partita l'utente sta pensando a un personaggio segreto. Tu fai domande sì/no per scoprire chi è. Hai a disposizione ${p.maxQuestions} domande in totale.
 
 Linee guida strategiche:
-- Inizia da domande generali che dividono lo spazio dei possibili personaggi (es. e' una persona reale? e' vivente?).
+- L'utente puo' aver pensato a chiunque (persona storica, personaggio dei cartoni, sportivo, musicista, scienziato, ecc.). Le prime domande devono restringere la CATEGORIA prima di passare ai dettagli (es. "e' una persona realmente esistita?", "appartiene al mondo della fantasia?", "vive ai giorni nostri?").
 - Usa le risposte precedenti per affinare la tua ipotesi. Mai contraddirti.
 - Preferisci domande oggettive a domande soggettive ("e' alto?" e' soggettivo, "vive in Italia?" e' oggettivo).
 - Se hai un'idea precisa di chi sia il personaggio, puoi fare un tentativo: scrivi "Sei [nome]?". Un tentativo conta come una domanda.
@@ -90,7 +96,6 @@ ${describeAge(p.age)}
 
 ${describeDifficulty(p.difficulty)}
 
-Domini accettabili per l'eventuale personaggio: ${p.domains.join(', ')}.
 Culture conosciute dall'utente: ${p.cultures.join(', ')}. Tieni conto che l'utente probabilmente non conosce personaggi di altre culture.
 
 Parla solo italiano. Una domanda per volta. Niente preamboli.`;
@@ -136,8 +141,17 @@ Parla solo italiano. Una risposta per turno. Niente preamboli.`;
 /**
  * Prompt isolato (one-shot) per far scegliere a Mana il personaggio segreto
  * all'inizio di una partita user_guesses. Restituisce SOLO il nome.
+ *
+ * Richiede `domains` non vuoto: in user_guesses i domini sono il vincolo
+ * principale per la scelta di Mana. Il chiamante deve garantirlo (lo schema
+ * Zod del body lo fa per i caller HTTP).
  */
 export function buildCharacterChoicePrompt(p: SinglePromptParams): string {
+  if (!p.domains || p.domains.length === 0) {
+    throw new Error(
+      'buildCharacterChoicePrompt requires at least one domain (user_guesses mode)',
+    );
+  }
   return `Sei Mana. Devi scegliere un personaggio segreto per una partita di "indovina il personaggio".
 
 Vincoli per la scelta:

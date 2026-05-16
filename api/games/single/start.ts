@@ -91,7 +91,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
         age,
         difficulty: body.difficulty,
         cultures: body.culture,
-        domains: body.domains,
+        // domains volutamente omessi: in mana_guesses Mana indaga alla cieca.
         maxQuestions: game.max_questions,
       });
 
