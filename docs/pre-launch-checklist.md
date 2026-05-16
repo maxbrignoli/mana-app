@@ -71,6 +71,16 @@ Lista di cose da sistemare PRIMA del lancio pubblico dell'app sugli store. Si ag
 - [ ] Logging strutturato verificato in produzione
 - [ ] Health check pubblico documentato
 
+## Architettura per piu' giochi
+
+Decisione di prodotto presa: lo studio sviluppera' una collezione di giochi, l'account utente sara' UNICO tra tutti i giochi (modello Supercell). L'ID utente segue il giocatore, non il singolo gioco.
+
+- [ ] Estrarre il core riusabile in package separato prima del gioco #2 (auth, profili, gemme, AI, rate limit, monitoring, crypto, theme/router/api client Flutter). Stima ~70-80% del codice attuale.
+- [ ] Rinominare il "core" con un nome neutro (non "mana") quando si estrae
+- [ ] Schema DB: separare tabelle core (profiles, gems_balance) da quelle specifiche gioco (single_games, ecc.); ogni gioco affianchera' le sue tabelle senza toccare il core
+- [ ] Definire branding dello studio sotto cui pubblicare i giochi (es. nome editore unico su App Store / Play Store)
+- [ ] Mantenere la separazione `api/_lib/core/` vs `api/_lib/game/` e `lib/core/` vs `lib/features/game/` gia' nei prossimi PR
+
 ## Operations
 
 - [ ] Account admin (`profiles.is_admin = true`) creato per ogni persona del team
