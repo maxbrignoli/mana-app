@@ -6,10 +6,17 @@ import 'core/api/mana_api.dart';
 import 'core/config/app_config.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'features/game/game_api.dart';
 
-/// Istanza globale del client API. Per ora un singleton modulare; quando
-/// adotteremo un framework di state management lo iniettiamo via provider.
+/// Istanza globale del client API core. Per ora un singleton modulare;
+/// quando adotteremo un framework di state management lo iniettiamo via
+/// provider.
 late final ManaApi manaApi;
+
+/// Istanza globale del client API specifico di gioco. Costruita sopra
+/// [manaApi]: quando il core sara' estratto, manaApi migrera' nel
+/// package core e gameApi restera' qui.
+late final GameApi gameApi;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +29,7 @@ Future<void> main() async {
   );
 
   manaApi = ManaApi();
+  gameApi = GameApi.from(manaApi);
 
   runApp(const ManaApp());
 }
