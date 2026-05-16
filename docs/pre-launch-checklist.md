@@ -58,6 +58,13 @@ Lista di cose da sistemare PRIMA del lancio pubblico dell'app sugli store. Si ag
 - [ ] App icon, screenshot, descrizione store finalizzati
 - [ ] Modalità ospite + recovery account documentati per i revisori store
 
+## Auth social
+
+- [ ] Configurare Google Sign-In: OAuth client ID su Google Cloud Console (uno per Android, uno per iOS), abilitare provider Google su dashboard Supabase con client ID/secret
+- [ ] Configurare Sign in with Apple: Services ID + Key su Apple Developer Portal (richiede account a $99/anno), abilitare provider Apple su dashboard Supabase
+- [ ] Implementare schermata di login con bottoni "Accedi con Google" / "Accedi con Apple" lato Flutter (`auth.signInWithOAuth(OAuthProvider.google|apple)`)
+- [ ] Sign in with Apple è obbligatorio per pubblicare su App Store se ci sono altri provider social — non saltare
+
 ## Cleanup tecnici
 
 - [ ] Implementare cleanup periodico utenti anonimi inattivi (es. >90 giorni senza login)

@@ -62,10 +62,14 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     return;
   }
 
-  await handleGet(res, user.id);
+  await handleGet(req, res, user.id);
 }
 
-async function handleGet(res: VercelResponse, userId: string): Promise<void> {
+async function handleGet(
+  req: VercelRequest,
+  res: VercelResponse,
+  userId: string,
+): Promise<void> {
   const supabase = getSupabaseAdmin();
 
   // Carichiamo profilo, gemme e stats in parallelo per ridurre la latenza.
@@ -116,11 +120,49 @@ async function handleGet(res: VercelResponse, userId: string): Promise<void> {
     throw new Error('Database error loading gems balance');
   }
 
+  // Rilevazione paese via IP al primo /api/me. Se il profilo non ha
+  // ancora country_code (e' appena stato creato dal trigger DB), proviamo
+  // a popolarlo dall'header x-vercel-ip-country che Vercel popola
+  // automaticamente sulle deploy production/preview. In dev locale
+  // l'header non c'e' e country_code resta null finche' l'utente non lo
+  // imposta manualmente.
+  //
+  // Una sola scrittura nella vita dell'utente: il check 'IS NULL' nel
+  // filtro evita race condition se due GET arrivano in parallelo (il
+  // secondo trova country_code gia' popolato e l'update fa 0 righe).
+  let profileData = profileResult.data;
+  if (profileData.country_code == null) {
+    const detected = detectCountryCode(req);
+    if (detected) {
+      const { data: updated, error: updateError } = await supabase
+        .from('profiles')
+        .update({ country_code: detected })
+        .eq('id', userId)
+        .is('country_code', null)
+        .select(
+          'id, private_id, display_name, email, age, country_code, cultures, preferred_language, preferred_difficulty, avatar_id, rage_level, created_at',
+        )
+        .maybeSingle();
+      if (updateError) {
+        // Non blocchiamo la response: il country_code e' un'informazione
+        // di contorno, vale piu' rispondere con un profilo senza che
+        // fallire il GET.
+        logger.warn('failed to backfill country_code', {
+          userId,
+          error: updateError.message,
+        });
+      } else if (updated) {
+        profileData = updated;
+        logger.info('country_code backfilled', { userId, code: detected });
+      }
+    }
+  }
+
   const totalSingle = singleTotal.count ?? 0;
   const wonSingle = singleWon.count ?? 0;
 
   res.status(200).json({
-    profile: profileResult.data,
+    profile: profileData,
     gems: gemsResult.data ?? { balance: 0, last_regen_at: null },
     stats: {
       single_games_total: totalSingle,
@@ -179,3 +221,25 @@ async function handlePatch(
 }
 
 export default withErrorHandling('/api/me', handler);
+
+/**
+ * Rileva il codice paese ISO-3166 alpha-2 (es. 'IT', 'US') dall'header
+ * x-vercel-ip-country, popolato automaticamente da Vercel sulle deploy
+ * production/preview tramite la sua CDN.
+ *
+ * Ritorna null se l'header e' assente (dev locale), vuoto, o non
+ * sembra un codice paese valido. Non facciamo validazione contro una
+ * lista chiusa di paesi: ci fidiamo del valore Vercel ma applichiamo
+ * un controllo sintattico minimo (2 caratteri alfabetici uppercase).
+ *
+ * Vercel docs:
+ *   https://vercel.com/docs/edge-network/headers/request-headers#x-vercel-ip-country
+ */
+function detectCountryCode(req: VercelRequest): string | null {
+  const raw = req.headers['x-vercel-ip-country'];
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  if (!value) return null;
+  const upper = value.toUpperCase().trim();
+  if (!/^[A-Z]{2}$/.test(upper)) return null;
+  return upper;
+}
