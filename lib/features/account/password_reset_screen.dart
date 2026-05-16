@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../generated/l10n/app_localizations.dart';
+
 /// Schermata di richiesta reset password.
 ///
 /// L'utente inserisce la sua email; chiamiamo
@@ -44,7 +46,11 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
       setState(() => _errorMessage = e.message);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _errorMessage = 'Errore inatteso: $e');
+      setState(
+        () => _errorMessage = AppLocalizations.of(
+          context,
+        ).unexpectedError(e.toString()),
+      );
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -52,9 +58,10 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reset password'),
+        title: Text(l.passwordResetTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -69,16 +76,16 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
             children: [
               const SizedBox(height: 8),
               Text(
-                'Inserisci l\'email del tuo account. Ti invieremo un link per reimpostare la password.',
+                l.passwordResetIntro,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 24),
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.email_outlined),
+                decoration: InputDecoration(
+                  labelText: l.upgradeEmailLabel,
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.email_outlined),
                 ),
                 keyboardType: TextInputType.emailAddress,
                 autocorrect: false,
@@ -86,11 +93,11 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
                 autofillHints: const [AutofillHints.email],
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) {
-                    return 'Inserisci la tua email';
+                    return l.validationEmailRequired;
                   }
                   final value = v.trim();
                   if (!value.contains('@') || !value.contains('.')) {
-                    return 'Email non valida';
+                    return l.validationEmailInvalid;
                   }
                   return null;
                 },
@@ -133,7 +140,7 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Invia link di reset'),
+                    : Text(l.passwordResetSendAction),
               ),
             ],
           ),
@@ -144,23 +151,22 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
 }
 
 void _showSentDialog(BuildContext context) {
+  final l = AppLocalizations.of(context);
   showDialog<void>(
     context: context,
     barrierDismissible: false,
     builder: (dialogContext) {
       return AlertDialog(
         icon: const Icon(Icons.mark_email_read_outlined, size: 48),
-        title: const Text('Email inviata'),
-        content: const Text(
-          'Se l\'email esiste nei nostri archivi, riceverai un link per reimpostare la password.\n\nControlla anche la cartella spam.',
-        ),
+        title: Text(l.passwordResetSentTitle),
+        content: Text(l.passwordResetSentBody),
         actions: [
           FilledButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
               context.pop(); // torna a UpgradeAccountScreen
             },
-            child: const Text('OK'),
+            child: Text(l.actionOk),
           ),
         ],
       );

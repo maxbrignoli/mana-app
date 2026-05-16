@@ -1,0 +1,218 @@
+{
+  "@@locale": "en",
+  "@@x-context": "Mana app, English (template). All keys live here with metadata; other languages copy values only.",
+
+  "appName": "Mana",
+  "@appName": {
+    "description": "Brand name of the app. Untranslated."
+  },
+
+  "actionRetry": "Retry",
+  "@actionRetry": {},
+  "actionCancel": "Cancel",
+  "@actionCancel": {},
+  "actionSave": "Save",
+  "@actionSave": {},
+  "actionContinue": "Continue",
+  "@actionContinue": {},
+  "actionOk": "OK",
+  "@actionOk": {},
+  "actionReload": "Reload",
+  "@actionReload": {},
+  "actionBack": "Back",
+  "@actionBack": {},
+
+  "splashStartingSession": "Unable to start the session: {error}",
+  "@splashStartingSession": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "homeWelcome": "Welcome",
+  "@homeWelcome": {},
+  "homePlaceholder": "Placeholder home. The game arrives in the next PRs.",
+  "@homePlaceholder": {},
+  "homeGemsCount": "{count} gems",
+  "@homeGemsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "homeGuestBanner": "You're playing as a guest. Create an account so you don't lose your progress.",
+  "@homeGuestBanner": {},
+  "homeProfileTooltip": "Profile",
+  "@homeProfileTooltip": {},
+  "homeLogoutTooltip": "Log out",
+  "@homeLogoutTooltip": {},
+
+  "errorLoadProfile": "Unable to load profile",
+  "@errorLoadProfile": {},
+  "errorNoEmail": "(no email)",
+  "@errorNoEmail": {},
+  "errorNoName": "(no name)",
+  "@errorNoName": {},
+  "errorGeneric": "Error: {message}",
+  "@errorGeneric": {
+    "placeholders": {
+      "message": { "type": "String" }
+    }
+  },
+  "errorRequestFailed": "request failed",
+  "@errorRequestFailed": {
+    "description": "Fallback text when a backend error has no message."
+  },
+
+  "accountTitle": "Profile",
+  "@accountTitle": {},
+  "accountIdLabel": "ID: {id}",
+  "@accountIdLabel": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "accountEditNameTooltip": "Edit name",
+  "@accountEditNameTooltip": {},
+  "accountEditNameDialogTitle": "Edit name",
+  "@accountEditNameDialogTitle": {},
+  "accountEditNameHint": "Your name",
+  "@accountEditNameHint": {},
+  "accountNameUpdated": "Name updated",
+  "@accountNameUpdated": {},
+  "accountAvatarUpdated": "Avatar updated",
+  "@accountAvatarUpdated": {},
+  "accountPickAvatarTitle": "Pick an avatar",
+  "@accountPickAvatarTitle": {},
+
+  "accountSectionStats": "Statistics",
+  "@accountSectionStats": {},
+  "accountStatGems": "Gems",
+  "@accountStatGems": {},
+  "accountStatGamesPlayed": "Games played",
+  "@accountStatGamesPlayed": {},
+  "accountStatGamesWon": "Wins",
+  "@accountStatGamesWon": {},
+  "accountStatWinRate": "Win rate",
+  "@accountStatWinRate": {},
+  "accountStatRageLevel": "Rage level",
+  "@accountStatRageLevel": {},
+  "accountStatRageLevelValue": "{level} / 4",
+  "@accountStatRageLevelValue": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "accountStatPercent": "{value}%",
+  "@accountStatPercent": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "accountStatEmpty": "—",
+  "@accountStatEmpty": {},
+
+  "accountSection": "Account",
+  "@accountSection": {},
+  "accountGuestTitle": "You're playing as a guest",
+  "@accountGuestTitle": {},
+  "accountGuestSubtitle": "Create an account so you don't lose your progress if you switch device.",
+  "@accountGuestSubtitle": {},
+  "accountUpgradeCta": "Create an account / Sign in",
+  "@accountUpgradeCta": {},
+  "accountEmailLabel": "Email",
+  "@accountEmailLabel": {},
+  "accountSignOut": "Sign out",
+  "@accountSignOut": {},
+  "accountGuestBannerShort": "You're a guest. Create an account to save your progress.",
+  "@accountGuestBannerShort": {},
+
+  "upgradeTitle": "Account",
+  "@upgradeTitle": {},
+  "upgradeTabSignUp": "Create account",
+  "@upgradeTabSignUp": {},
+  "upgradeTabSignIn": "Sign in",
+  "@upgradeTabSignIn": {},
+  "upgradeSignUpIntro": "Create an account to save your progress and find it again on other devices.",
+  "@upgradeSignUpIntro": {},
+  "upgradeSignInIntro": "Sign in with an existing account.",
+  "@upgradeSignInIntro": {},
+  "upgradeEmailLabel": "Email",
+  "@upgradeEmailLabel": {},
+  "upgradePasswordLabel": "Password",
+  "@upgradePasswordLabel": {},
+  "upgradePasswordHelper": "At least 8 characters",
+  "@upgradePasswordHelper": {},
+  "upgradeConfirmPasswordLabel": "Confirm password",
+  "@upgradeConfirmPasswordLabel": {},
+  "upgradeCreateAccountAction": "Create account",
+  "@upgradeCreateAccountAction": {},
+  "upgradeSignInAction": "Sign in",
+  "@upgradeSignInAction": {},
+  "upgradeForgotPassword": "Forgot your password?",
+  "@upgradeForgotPassword": {},
+
+  "validationEmailRequired": "Enter your email",
+  "@validationEmailRequired": {},
+  "validationEmailInvalid": "Invalid email",
+  "@validationEmailInvalid": {},
+  "validationPasswordRequired": "Enter a password",
+  "@validationPasswordRequired": {},
+  "validationPasswordMinLength": "At least 8 characters",
+  "@validationPasswordMinLength": {},
+  "validationPasswordConfirmRequired": "Confirm the password",
+  "@validationPasswordConfirmRequired": {},
+  "validationPasswordMismatch": "Passwords don't match",
+  "@validationPasswordMismatch": {},
+  "validationPasswordLoginRequired": "Enter the password",
+  "@validationPasswordLoginRequired": {},
+
+  "warningTitle": "Warning",
+  "@warningTitle": {},
+  "replaceAnonymousBody": "You're about to sign in to a different account. The gems, games, and all the progress of your guest account will be lost.\n\nContinue?",
+  "@replaceAnonymousBody": {},
+  "unexpectedError": "Unexpected error: {error}",
+  "@unexpectedError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "emailCheckTitle": "Check your email",
+  "@emailCheckTitle": {},
+  "emailCheckBody": "We sent a confirmation link to {email}.\n\nOpen the email and click the link to activate your account.\n\nIn the meantime you can keep playing.",
+  "@emailCheckBody": {
+    "placeholders": {
+      "email": { "type": "String" }
+    }
+  },
+  "emailCheckBackToGame": "Back to the game",
+  "@emailCheckBackToGame": {},
+
+  "passwordResetTitle": "Password reset",
+  "@passwordResetTitle": {},
+  "passwordResetIntro": "Enter the email of your account. We'll send you a link to reset your password.",
+  "@passwordResetIntro": {},
+  "passwordResetSendAction": "Send reset link",
+  "@passwordResetSendAction": {},
+  "passwordResetSentTitle": "Email sent",
+  "@passwordResetSentTitle": {},
+  "passwordResetSentBody": "If the email exists in our records, you'll receive a link to reset your password.\n\nCheck your spam folder too.",
+  "@passwordResetSentBody": {},
+
+  "avatarDefault": "Default",
+  "@avatarDefault": {},
+  "avatarWizard": "Wizard",
+  "@avatarWizard": {},
+  "avatarFox": "Fox",
+  "@avatarFox": {},
+  "avatarDragon": "Dragon",
+  "@avatarDragon": {},
+  "avatarKnight": "Knight",
+  "@avatarKnight": {},
+  "avatarStar": "Star",
+  "@avatarStar": {},
+  "avatarCrystal": "Crystal",
+  "@avatarCrystal": {},
+  "avatarOwl": "Owl",
+  "@avatarOwl": {}
+}

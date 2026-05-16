@@ -38,6 +38,9 @@ dependencies:
   flutter_dotenv: ^6.0.1
   go_router: ^17.2.3
   dio: ^5.9.2
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:
@@ -60,6 +63,11 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # Genera codice Dart tipizzato dalle stringhe .arb in lib/l10n/.
+  # Configurazione in l10n.yaml. Il codice generato vive in
+  # lib/generated/l10n/ e NON va versionato.
+  generate: true
 
   assets:
     - .env

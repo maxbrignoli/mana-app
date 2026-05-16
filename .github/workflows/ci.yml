@@ -27,6 +27,12 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Generate localizations
+        # Genera il codice da lib/l10n/*.arb prima di analyze/test.
+        # `flutter pub get` di solito lo triggera automaticamente, ma su CI
+        # ci affidiamo allo step esplicito per non dipendere da side effect.
+        run: flutter gen-l10n
+
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
 

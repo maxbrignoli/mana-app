@@ -133,3 +133,6 @@ node_modules/
 dist/
 *.tsbuildinfo
 android/.kotlin/
+
+# Codice generato da flutter_localizations (gen_l10n)
+lib/generated/
