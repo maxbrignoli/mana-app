@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../features/account/account_screen.dart';
+import '../../features/account/password_reset_screen.dart';
+import '../../features/account/upgrade_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/splash/splash_screen.dart';
 
@@ -40,6 +42,16 @@ GoRouter buildAppRouter(SupabaseClient supabase) {
       GoRoute(
         path: '/account',
         builder: (context, state) => const AccountScreen(),
+        routes: [
+          GoRoute(
+            path: 'upgrade',
+            builder: (context, state) => const UpgradeAccountScreen(),
+          ),
+          GoRoute(
+            path: 'password-reset',
+            builder: (context, state) => const PasswordResetScreen(),
+          ),
+        ],
       ),
     ],
     redirect: (context, state) {
@@ -54,8 +66,10 @@ GoRouter buildAppRouter(SupabaseClient supabase) {
       }
 
       // Schermate protette: rispedisci a splash se non autenticato.
-      const protectedRoutes = {'/home', '/account'};
-      if (protectedRoutes.contains(location) && !isLoggedIn) {
+      // Includono tutte le rotte sotto /account (upgrade, password-reset).
+      final isProtected =
+          location == '/home' || location.startsWith('/account');
+      if (isProtected && !isLoggedIn) {
         return '/';
       }
 
