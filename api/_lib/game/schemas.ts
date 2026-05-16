@@ -9,14 +9,31 @@ import { z } from 'zod';
  * nelle RPC PostgreSQL.
  */
 
-export const startSingleGameBodySchema = z.object({
-  mode: z.enum(['mana_guesses', 'user_guesses']),
-  domains: z.array(z.string()).min(1).max(20),
-  difficulty: z.enum(['easy', 'medium', 'hard']),
-  culture: z.array(z.string()).min(1).max(10),
-  maxQuestions: z.number().int().min(5).max(50).optional(),
-  dailyChallengeId: z.string().uuid().optional(),
-});
+export const startSingleGameBodySchema = z
+  .object({
+    mode: z.enum(['mana_guesses', 'user_guesses']),
+    // domains: obbligatori SOLO per user_guesses (e' Mana che sceglie il
+    // personaggio entro questi domini). In mana_guesses e' l'utente che
+    // pensa al personaggio "alla cieca" — Mana non sa di chi si tratta e
+    // deve indagare anche il tipo. Validato dal refine sotto.
+    domains: z.array(z.string()).max(20).optional(),
+    difficulty: z.enum(['easy', 'medium', 'hard']),
+    culture: z.array(z.string()).min(1).max(10),
+    maxQuestions: z.number().int().min(5).max(50).optional(),
+    dailyChallengeId: z.string().uuid().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.mode === 'user_guesses') {
+        return Array.isArray(data.domains) && data.domains.length >= 1;
+      }
+      return true;
+    },
+    {
+      message: 'domains is required (min 1) when mode is user_guesses',
+      path: ['domains'],
+    },
+  );
 
 export type StartSingleGameBody = z.infer<typeof startSingleGameBodySchema>;
 

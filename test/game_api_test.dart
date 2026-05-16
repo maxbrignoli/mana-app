@@ -26,7 +26,7 @@ void main() {
   });
 
   group('startSingleGame validations', () {
-    test('rifiuta domains vuoti', () {
+    test('rifiuta domains vuoti in userGuesses', () {
       expect(
         () => gameApi.startSingleGame(
           mode: SingleGameMode.userGuesses,
@@ -37,6 +37,51 @@ void main() {
         throwsArgumentError,
       );
     });
+
+    test('rifiuta domains null in userGuesses', () {
+      expect(
+        () => gameApi.startSingleGame(
+          mode: SingleGameMode.userGuesses,
+          difficulty: Difficulty.medium,
+          cultures: const ['it'],
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test(
+      'accetta domains null in manaGuesses e non li include nel body',
+      () async {
+        // Per questo test costruiamo un GameApi con un trasporto che cattura
+        // il body invece di failare: validare il comportamento positivo
+        // (la chiamata arriva al POST con il body corretto).
+        Map<String, dynamic>? capturedBody;
+        String? capturedPath;
+        final api = GameApi(
+          get: (_) async => fail('GET non atteso in questo test'),
+          post: (path, body) async {
+            capturedPath = path;
+            capturedBody = body;
+            return <String, dynamic>{}; // risposta fake
+          },
+        );
+
+        await api.startSingleGame(
+          mode: SingleGameMode.manaGuesses,
+          difficulty: Difficulty.medium,
+          cultures: const ['it'],
+        );
+
+        expect(capturedPath, '/api/games/single/start');
+        expect(capturedBody, isNotNull);
+        expect(capturedBody!['mode'], 'mana_guesses');
+        expect(
+          capturedBody!.containsKey('domains'),
+          isFalse,
+          reason: 'in mana_guesses i domains non devono essere inviati',
+        );
+      },
+    );
 
     test('rifiuta cultures vuote', () {
       expect(

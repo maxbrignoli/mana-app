@@ -57,7 +57,13 @@ function mapRpcError(error: { message: string; code?: string; details?: string |
 export async function startSingleGame(args: {
   userId: string;
   mode: GameMode;
-  domains: string[];
+  /**
+   * Domini scelti dall'utente. Obbligatori per mode='user_guesses' (li usa
+   * Mana per scegliere il personaggio segreto). Per mode='mana_guesses'
+   * non hanno senso: l'utente pensa al personaggio alla cieca e Mana deve
+   * indagare anche il tipo, quindi qui sono opzionali / non usati.
+   */
+  domains?: string[];
   difficulty: Difficulty;
   culture: string[];
   maxQuestions?: number;
@@ -67,7 +73,9 @@ export async function startSingleGame(args: {
   const { data, error } = await supabase.rpc('start_single_game', {
     p_user_id: args.userId,
     p_mode: args.mode,
-    p_domains: args.domains,
+    // RPC accetta NULL su p_domains (TEXT[]) senza problemi: la riga
+    // single_games avra' domain_selected = NULL.
+    p_domains: args.domains ?? null,
     p_difficulty: args.difficulty,
     p_culture: args.culture,
     p_max_questions: args.maxQuestions ?? 20,
