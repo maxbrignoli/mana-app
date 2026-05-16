@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/api/mana_api.dart';
+import '../../generated/l10n/app_localizations.dart';
 import '../../main.dart' show manaApi;
 import 'avatars.dart';
 
@@ -40,9 +41,10 @@ class _AccountScreenState extends State<AccountScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profilo'),
+        title: Text(l.accountTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/home'),
@@ -50,7 +52,7 @@ class _AccountScreenState extends State<AccountScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Ricarica',
+            tooltip: l.actionReload,
             onPressed: _refresh,
           ),
         ],
@@ -72,6 +74,7 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   Widget _errorView(Object error) {
+    final l = AppLocalizations.of(context);
     final message = error is ManaApiException
         ? '${error.status ?? "?"} ${error.code ?? ""}: ${error.message ?? error}'
         : error.toString();
@@ -87,7 +90,7 @@ class _AccountScreenState extends State<AccountScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Impossibile caricare il profilo',
+            l.errorLoadProfile,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
@@ -97,7 +100,7 @@ class _AccountScreenState extends State<AccountScreen> {
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 16),
-          FilledButton(onPressed: _refresh, child: const Text('Riprova')),
+          FilledButton(onPressed: _refresh, child: Text(l.actionRetry)),
         ],
       ),
     );
@@ -112,13 +115,14 @@ class _ProfileBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final profile = (data['profile'] as Map?) ?? const {};
     final gems = (data['gems'] as Map?) ?? const {};
     final stats = (data['stats'] as Map?) ?? const {};
     final session = Supabase.instance.client.auth.currentSession;
     final isAnonymous = session?.user.isAnonymous ?? false;
 
-    final displayName = (profile['display_name'] as String?) ?? '(senza nome)';
+    final displayName = (profile['display_name'] as String?) ?? l.errorNoName;
     final avatarId = profile['avatar_id'] as String?;
     final privateId = (profile['private_id'] as num?)?.toInt();
     final balance = (gems['balance'] as num?)?.toInt() ?? 0;
@@ -130,10 +134,10 @@ class _ProfileBody extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        if (isAnonymous) _GuestBanner(),
+        if (isAnonymous) const _GuestBanner(),
         const SizedBox(height: 8),
 
-        // Sezione identita': avatar + nome + private_id
+        // Sezione identita'
         _SectionCard(
           children: [
             Row(
@@ -155,7 +159,7 @@ class _ProfileBody extends StatelessWidget {
                       const SizedBox(height: 4),
                       if (privateId != null)
                         Text(
-                          'ID: ${_formatPrivateId(privateId)}',
+                          l.accountIdLabel(_formatPrivateId(privateId)),
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: Theme.of(
@@ -168,7 +172,7 @@ class _ProfileBody extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.edit),
-                  tooltip: 'Modifica nome',
+                  tooltip: l.accountEditNameTooltip,
                   onPressed: () => _editDisplayName(context, displayName),
                 ),
               ],
@@ -179,33 +183,35 @@ class _ProfileBody extends StatelessWidget {
 
         // Sezione statistiche
         _SectionCard(
-          title: 'Statistiche',
+          title: l.accountSectionStats,
           children: [
             _StatRow(
               icon: Icons.diamond,
-              label: 'Gemme',
+              label: l.accountStatGems,
               value: balance.toString(),
             ),
             _StatRow(
               icon: Icons.casino,
-              label: 'Partite giocate',
+              label: l.accountStatGamesPlayed,
               value: totalGames.toString(),
             ),
             _StatRow(
               icon: Icons.emoji_events,
-              label: 'Vittorie',
+              label: l.accountStatGamesWon,
               value: wonGames.toString(),
             ),
             _StatRow(
               icon: Icons.percent,
-              label: 'Percentuale vittorie',
-              value: winRate == null ? '—' : '$winRate%',
+              label: l.accountStatWinRate,
+              value: winRate == null
+                  ? l.accountStatEmpty
+                  : l.accountStatPercent(winRate.toString()),
             ),
             if (rageLevel > 0)
               _StatRow(
                 icon: Icons.warning_amber,
-                label: 'Rage level',
-                value: '$rageLevel / 4',
+                label: l.accountStatRageLevel,
+                value: l.accountStatRageLevelValue(rageLevel),
                 emphasis: true,
               ),
           ],
@@ -214,36 +220,32 @@ class _ProfileBody extends StatelessWidget {
 
         // Sezione account
         _SectionCard(
-          title: 'Account',
+          title: l.accountSection,
           children: [
             if (isAnonymous) ...[
-              const ListTile(
+              ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.person_outline),
-                title: Text('Stai giocando come ospite'),
-                subtitle: Text(
-                  'Crea un account per non perdere i progressi se cambi dispositivo.',
-                ),
+                leading: const Icon(Icons.person_outline),
+                title: Text(l.accountGuestTitle),
+                subtitle: Text(l.accountGuestSubtitle),
               ),
               const SizedBox(height: 8),
               FilledButton.icon(
                 icon: const Icon(Icons.person_add),
-                label: const Text('Crea un account / Accedi'),
+                label: Text(l.accountUpgradeCta),
                 onPressed: () => context.push('/account/upgrade'),
               ),
             ] else ...[
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.email_outlined),
-                title: const Text('Email'),
-                subtitle: Text(
-                  (profile['email'] as String?) ?? '(nessuna email)',
-                ),
+                title: Text(l.accountEmailLabel),
+                subtitle: Text((profile['email'] as String?) ?? l.errorNoEmail),
               ),
               const SizedBox(height: 8),
               OutlinedButton.icon(
                 icon: const Icon(Icons.logout),
-                label: const Text('Esci'),
+                label: Text(l.accountSignOut),
                 onPressed: () async {
                   await Supabase.instance.client.auth.signOut();
                   if (context.mounted) context.go('/');
@@ -257,12 +259,12 @@ class _ProfileBody extends StatelessWidget {
   }
 
   String _formatPrivateId(int id) {
-    // Formatta come "123 456 789" per leggibilita'.
     final s = id.toString().padLeft(9, '0');
     return '${s.substring(0, 3)} ${s.substring(3, 6)} ${s.substring(6, 9)}';
   }
 
   Future<void> _pickAvatar(BuildContext context, String? currentId) async {
+    final l = AppLocalizations.of(context);
     final selected = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
@@ -276,30 +278,31 @@ class _ProfileBody extends StatelessWidget {
     await _patchAndRefresh(
       context,
       patch: () => manaApi.patchMe(avatarId: selected),
-      successMessage: 'Avatar aggiornato',
+      successMessage: l.accountAvatarUpdated,
     );
   }
 
   Future<void> _editDisplayName(BuildContext context, String current) async {
+    final l = AppLocalizations.of(context);
     final controller = TextEditingController(text: current);
     final newName = await showDialog<String>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Modifica nome'),
+          title: Text(l.accountEditNameDialogTitle),
           content: TextField(
             controller: controller,
             autofocus: true,
             maxLength: 30,
-            decoration: const InputDecoration(
-              hintText: 'Il tuo nome',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              hintText: l.accountEditNameHint,
+              border: const OutlineInputBorder(),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Annulla'),
+              child: Text(l.actionCancel),
             ),
             FilledButton(
               onPressed: () {
@@ -310,7 +313,7 @@ class _ProfileBody extends StatelessWidget {
                   Navigator.of(context).pop(value);
                 }
               },
-              child: const Text('Salva'),
+              child: Text(l.actionSave),
             ),
           ],
         );
@@ -320,7 +323,7 @@ class _ProfileBody extends StatelessWidget {
     await _patchAndRefresh(
       context,
       patch: () => manaApi.patchMe(displayName: newName),
-      successMessage: 'Nome aggiornato',
+      successMessage: l.accountNameUpdated,
     );
   }
 
@@ -329,6 +332,7 @@ class _ProfileBody extends StatelessWidget {
     required Future<Map<String, dynamic>> Function() patch,
     required String successMessage,
   }) async {
+    final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     try {
       await patch();
@@ -336,32 +340,35 @@ class _ProfileBody extends StatelessWidget {
       messenger.showSnackBar(SnackBar(content: Text(successMessage)));
     } on ManaApiException catch (e) {
       messenger.showSnackBar(
-        SnackBar(content: Text('Errore: ${e.message ?? "richiesta fallita"}')),
+        SnackBar(
+          content: Text(l.errorGeneric(e.message ?? l.errorRequestFailed)),
+        ),
       );
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Errore: $e')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(l.errorGeneric(e.toString()))),
+      );
     }
   }
 }
 
 class _GuestBanner extends StatelessWidget {
+  const _GuestBanner();
+
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.secondaryContainer,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.info_outline, size: 20),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Sei un ospite. Crea un account per salvare i progressi.',
-            ),
-          ),
+          const Icon(Icons.info_outline, size: 20),
+          const SizedBox(width: 8),
+          Expanded(child: Text(l.accountGuestBannerShort)),
         ],
       ),
     );
@@ -479,6 +486,7 @@ class _AvatarPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -487,7 +495,7 @@ class _AvatarPicker extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Scegli un avatar',
+              l.accountPickAvatarTitle,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
@@ -522,7 +530,7 @@ class _AvatarPicker extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        avatar.label,
+                        avatar.labelFor(context),
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                     ],

@@ -2,42 +2,38 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../generated/l10n/app_localizations.dart';
+
 /// Schermata di upgrade dell'account.
 ///
 /// Due tab:
 /// - 'Crea account': l'utente anonimo attuale aggancia email+password tramite
-///   auth.updateUser(). Lo user_id resta invariato, quindi gemme, partite e
-///   profilo vengono mantenuti. Supabase invia automaticamente la mail di
-///   conferma. Mentre l'utente non conferma, la sessione anonima resta
-///   attiva e si puo' continuare a giocare; la conferma serve per poter
-///   fare login da altri device e per il reset password.
-/// - 'Accedi': sign-in classico con email+password. Se l'utente attuale
-///   ha gia' progressi (display_name diverso da quello generato, gemme
-///   spese, partite giocate), un dialog avvisa che cambiando account si
-///   perderanno. Confermando, signOut() della sessione anonima +
-///   signInWithPassword() del nuovo account.
-///
-/// Niente conferma email obbligatoria all'accesso: il dashboard Supabase
-/// e' configurato senza Confirm email. La conferma resta utile per il
-/// reset password (vedi PasswordResetScreen).
+///   auth.updateUser(). Lo user_id resta invariato, quindi gemme/profilo/partite
+///   vengono mantenuti. Supabase invia automaticamente la mail di conferma.
+///   Mentre l'utente non conferma, la sessione anonima resta attiva e si puo'
+///   continuare a giocare; la conferma serve per poter fare login da altri
+///   device e per il reset password.
+/// - 'Accedi': sign-in classico con email+password. Se l'utente attuale ha
+///   gia' progressi, un dialog avvisa che cambiando account si perderanno.
 class UpgradeAccountScreen extends StatelessWidget {
   const UpgradeAccountScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Account'),
+          title: Text(l.upgradeTitle),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => context.go('/account'),
           ),
-          bottom: const TabBar(
+          bottom: TabBar(
             tabs: [
-              Tab(text: 'Crea account'),
-              Tab(text: 'Accedi'),
+              Tab(text: l.upgradeTabSignUp),
+              Tab(text: l.upgradeTabSignIn),
             ],
           ),
         ),
@@ -47,8 +43,6 @@ class UpgradeAccountScreen extends StatelessWidget {
   }
 }
 
-/// Form di creazione account: collega email+password all'utente anonimo
-/// attuale tramite auth.updateUser. NON cambia lo user_id.
 class _SignUpForm extends StatefulWidget {
   const _SignUpForm();
 
@@ -93,7 +87,11 @@ class _SignUpFormState extends State<_SignUpForm> {
       setState(() => _errorMessage = e.message);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _errorMessage = 'Errore inatteso: $e');
+      setState(
+        () => _errorMessage = AppLocalizations.of(
+          context,
+        ).unexpectedError(e.toString()),
+      );
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -101,6 +99,7 @@ class _SignUpFormState extends State<_SignUpForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Form(
@@ -110,79 +109,58 @@ class _SignUpFormState extends State<_SignUpForm> {
           children: [
             const SizedBox(height: 8),
             Text(
-              'Crea un account per salvare i tuoi progressi e ritrovarli su altri dispositivi.',
+              l.upgradeSignUpIntro,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 24),
             TextFormField(
               controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.email_outlined),
+              decoration: InputDecoration(
+                labelText: l.upgradeEmailLabel,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.email_outlined),
               ),
               keyboardType: TextInputType.emailAddress,
               autocorrect: false,
               enableSuggestions: false,
-              validator: _validateEmail,
+              validator: (v) => _validateEmail(l, v),
               autofillHints: const [AutofillHints.email],
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _passwordController,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock_outline),
-                helperText: 'Almeno 8 caratteri',
+              decoration: InputDecoration(
+                labelText: l.upgradePasswordLabel,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.lock_outline),
+                helperText: l.upgradePasswordHelper,
               ),
               obscureText: true,
-              validator: _validatePassword,
+              validator: (v) => _validatePassword(l, v),
               autofillHints: const [AutofillHints.newPassword],
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _confirmPasswordController,
-              decoration: const InputDecoration(
-                labelText: 'Conferma password',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock_outline),
+              decoration: InputDecoration(
+                labelText: l.upgradeConfirmPasswordLabel,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.lock_outline),
               ),
               obscureText: true,
               validator: (v) {
-                if (v == null || v.isEmpty) return 'Conferma la password';
+                if (v == null || v.isEmpty) {
+                  return l.validationPasswordConfirmRequired;
+                }
                 if (v != _passwordController.text) {
-                  return 'Le password non coincidono';
+                  return l.validationPasswordMismatch;
                 }
                 return null;
               },
             ),
             const SizedBox(height: 24),
             if (_errorMessage != null) ...[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.errorContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      color: Theme.of(context).colorScheme.onErrorContainer,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        _errorMessage!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onErrorContainer,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _ErrorBox(message: _errorMessage!),
               const SizedBox(height: 16),
             ],
             FilledButton(
@@ -193,7 +171,7 @@ class _SignUpFormState extends State<_SignUpForm> {
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Crea account'),
+                  : Text(l.upgradeCreateAccountAction),
             ),
           ],
         ),
@@ -202,8 +180,6 @@ class _SignUpFormState extends State<_SignUpForm> {
   }
 }
 
-/// Form di login con email+password. Se l'utente attuale e' anonimo,
-/// avverte che i progressi ospite andranno persi.
 class _SignInForm extends StatefulWidget {
   const _SignInForm();
 
@@ -228,8 +204,6 @@ class _SignInFormState extends State<_SignInForm> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Se l'utente corrente e' anonimo, chiediamo conferma esplicita perche'
-    // signIn distrugge la sessione anonima e i progressi.
     final session = Supabase.instance.client.auth.currentSession;
     final isAnonymous = session?.user.isAnonymous ?? false;
     if (isAnonymous) {
@@ -248,14 +222,17 @@ class _SignInFormState extends State<_SignInForm> {
         password: _passwordController.text,
       );
       if (!mounted) return;
-      // Il router fara' redirect a /home automaticamente al cambio sessione.
       context.go('/home');
     } on AuthException catch (e) {
       if (!mounted) return;
       setState(() => _errorMessage = e.message);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _errorMessage = 'Errore inatteso: $e');
+      setState(
+        () => _errorMessage = AppLocalizations.of(
+          context,
+        ).unexpectedError(e.toString()),
+      );
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -263,6 +240,7 @@ class _SignInFormState extends State<_SignInForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Form(
@@ -272,21 +250,21 @@ class _SignInFormState extends State<_SignInForm> {
           children: [
             const SizedBox(height: 8),
             Text(
-              'Accedi con un account gia esistente.',
+              l.upgradeSignInIntro,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 24),
             TextFormField(
               controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.email_outlined),
+              decoration: InputDecoration(
+                labelText: l.upgradeEmailLabel,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.email_outlined),
               ),
               keyboardType: TextInputType.emailAddress,
               autocorrect: false,
               enableSuggestions: false,
-              validator: _validateEmail,
+              validator: (v) => _validateEmail(l, v),
               autofillHints: const [
                 AutofillHints.username,
                 AutofillHints.email,
@@ -295,14 +273,15 @@ class _SignInFormState extends State<_SignInForm> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _passwordController,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock_outline),
+              decoration: InputDecoration(
+                labelText: l.upgradePasswordLabel,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.lock_outline),
               ),
               obscureText: true,
-              validator: (v) =>
-                  (v == null || v.isEmpty) ? 'Inserisci la password' : null,
+              validator: (v) => (v == null || v.isEmpty)
+                  ? l.validationPasswordLoginRequired
+                  : null,
               autofillHints: const [AutofillHints.password],
             ),
             const SizedBox(height: 8),
@@ -310,35 +289,12 @@ class _SignInFormState extends State<_SignInForm> {
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () => context.push('/account/password-reset'),
-                child: const Text('Password dimenticata?'),
+                child: Text(l.upgradeForgotPassword),
               ),
             ),
             const SizedBox(height: 16),
             if (_errorMessage != null) ...[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.errorContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      color: Theme.of(context).colorScheme.onErrorContainer,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        _errorMessage!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onErrorContainer,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _ErrorBox(message: _errorMessage!),
               const SizedBox(height: 16),
             ],
             FilledButton(
@@ -349,7 +305,7 @@ class _SignInFormState extends State<_SignInForm> {
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Accedi'),
+                  : Text(l.upgradeSignInAction),
             ),
           ],
         ),
@@ -359,44 +315,73 @@ class _SignInFormState extends State<_SignInForm> {
 }
 
 // -----------------------------------------------------------------------------
-// Validators & dialog helpers
+// Helpers locali
 // -----------------------------------------------------------------------------
 
-String? _validateEmail(String? v) {
-  if (v == null || v.trim().isEmpty) return 'Inserisci la tua email';
+class _ErrorBox extends StatelessWidget {
+  final String message;
+  const _ErrorBox({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.error_outline,
+            color: Theme.of(context).colorScheme.onErrorContainer,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onErrorContainer,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String? _validateEmail(AppLocalizations l, String? v) {
+  if (v == null || v.trim().isEmpty) return l.validationEmailRequired;
   final value = v.trim();
-  // Validazione email molto base: presenza di @ e un dominio con almeno
-  // un punto. Non vogliamo essere restrittivi (regex troppo stretti
-  // rifiutano email valide); la validazione vera la fa Supabase.
   if (!value.contains('@') || !value.contains('.')) {
-    return 'Email non valida';
+    return l.validationEmailInvalid;
   }
   return null;
 }
 
-String? _validatePassword(String? v) {
-  if (v == null || v.isEmpty) return 'Inserisci una password';
-  if (v.length < 8) return 'Almeno 8 caratteri';
+String? _validatePassword(AppLocalizations l, String? v) {
+  if (v == null || v.isEmpty) return l.validationPasswordRequired;
+  if (v.length < 8) return l.validationPasswordMinLength;
   return null;
 }
 
 Future<bool?> _confirmReplaceAnonymous(BuildContext context) {
+  final l = AppLocalizations.of(context);
   return showDialog<bool>(
     context: context,
     builder: (context) {
       return AlertDialog(
-        title: const Text('Attenzione'),
-        content: const Text(
-          'Stai per accedere a un altro account. Le gemme, le partite e tutti i progressi del tuo account ospite andranno persi.\n\nVuoi continuare?',
-        ),
+        title: Text(l.warningTitle),
+        content: Text(l.replaceAnonymousBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Annulla'),
+            child: Text(l.actionCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Continua'),
+            child: Text(l.actionContinue),
           ),
         ],
       );
@@ -405,23 +390,22 @@ Future<bool?> _confirmReplaceAnonymous(BuildContext context) {
 }
 
 void _showCheckEmailDialog(BuildContext context, String email) {
+  final l = AppLocalizations.of(context);
   showDialog<void>(
     context: context,
     barrierDismissible: false,
     builder: (dialogContext) {
       return AlertDialog(
         icon: const Icon(Icons.mark_email_read_outlined, size: 48),
-        title: const Text('Controlla la tua email'),
-        content: Text(
-          'Abbiamo inviato un link di conferma a $email.\n\nApri la mail e clicca il link per attivare il tuo account.\n\nNel frattempo puoi continuare a giocare.',
-        ),
+        title: Text(l.emailCheckTitle),
+        content: Text(l.emailCheckBody(email)),
         actions: [
           FilledButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
               context.go('/home');
             },
-            child: const Text('Torna a giocare'),
+            child: Text(l.emailCheckBackToGame),
           ),
         ],
       );

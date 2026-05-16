@@ -1,0 +1,21 @@
+# Configurazione del generatore di stringhe localizzate di Flutter.
+#
+# Documentazione ufficiale:
+# https://docs.flutter.dev/ui/accessibility-and-internationalization/internationalization
+#
+# Lavorando con questo file:
+# - I file .arb stanno in `lib/l10n/` (uno per lingua: app_en.arb, app_it.arb)
+# - L'inglese e' il "template" (app_en.arb): tutte le chiavi e i loro
+#   metadati (@key con description, placeholders) sono definiti li'.
+# - Le altre lingue (app_it.arb, ecc.) contengono SOLO i valori tradotti,
+#   senza metadati. Se manca una chiave in una traduzione, Flutter usa
+#   il valore inglese come fallback runtime.
+# - Il codice generato finisce in `lib/generated/l10n/`. NON e' versionato:
+#   viene rigenerato a ogni `flutter pub get` o `flutter run`.
+# - L'accesso runtime e' via `AppLocalizations.of(context).keyName`.
+
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-dir: lib/generated/l10n
+nullable-getter: false

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../generated/l10n/app_localizations.dart';
+
 /// Schermata di splash mostrata all'avvio dell'app.
 ///
 /// Comportamento:
@@ -54,13 +56,16 @@ class _SplashScreenState extends State<SplashScreen> {
       if (!mounted) return;
       setState(() {
         _attempting = false;
-        _errorMessage = 'Impossibile avviare la sessione: $e';
+        _errorMessage = AppLocalizations.of(
+          context,
+        ).splashStartingSession(e.toString());
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Scaffold(
       body: Center(
         child: Column(
@@ -69,7 +74,7 @@ class _SplashScreenState extends State<SplashScreen> {
             const Icon(Icons.auto_awesome, size: 80, color: Color(0xFF4A148C)),
             const SizedBox(height: 16),
             Text(
-              'Mana',
+              l.appName,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: const Color(0xFF4A148C),
@@ -90,7 +95,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              FilledButton(onPressed: _bootstrap, child: const Text('Riprova')),
+              FilledButton(onPressed: _bootstrap, child: Text(l.actionRetry)),
             ],
           ],
         ),

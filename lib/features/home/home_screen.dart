@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/api/mana_api.dart';
+import '../../generated/l10n/app_localizations.dart';
 import '../../main.dart' show manaApi;
 import '../account/avatars.dart';
 
@@ -33,21 +34,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final session = Supabase.instance.client.auth.currentSession;
     final isAnonymous = session?.user.isAnonymous ?? false;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mana'),
+        title: Text(l.appName),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Ricarica',
+            tooltip: l.actionReload,
             onPressed: _refresh,
           ),
           IconButton(
             icon: const Icon(Icons.person),
-            tooltip: 'Profilo',
+            tooltip: l.homeProfileTooltip,
             onPressed: () => context.go('/account'),
           ),
         ],
@@ -66,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
           final profile = (data['profile'] as Map?) ?? const {};
           final gems = (data['gems'] as Map?) ?? const {};
           final displayName =
-              (profile['display_name'] as String?) ?? '(senza nome)';
+              (profile['display_name'] as String?) ?? l.errorNoName;
           final avatar = avatarFromId(profile['avatar_id'] as String?);
           final balance = (gems['balance'] as num?)?.toInt() ?? 0;
 
@@ -82,16 +84,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: Theme.of(context).colorScheme.secondaryContainer,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.info_outline, size: 20),
-                        SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            'Stai giocando come ospite. Crea un account per non perdere i progressi.',
-                          ),
-                        ),
+                        const Icon(Icons.info_outline, size: 20),
+                        const SizedBox(width: 8),
+                        Flexible(child: Text(l.homeGuestBanner)),
                       ],
                     ),
                   ),
@@ -109,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Benvenuto',
+                  l.homeWelcome,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 4),
@@ -124,14 +122,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     const Icon(Icons.diamond, color: Color(0xFF4A148C)),
                     const SizedBox(width: 8),
                     Text(
-                      '$balance gemme',
+                      l.homeGemsCount(balance),
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                   ],
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  'Placeholder home. Il gioco arriva nei prossimi PR.',
+                  l.homePlaceholder,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -146,6 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _errorView(Object error) {
+    final l = AppLocalizations.of(context);
     final message = error is ManaApiException
         ? '${error.status ?? "?"} ${error.code ?? ""}: ${error.message ?? error}'
         : error.toString();
@@ -161,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Impossibile caricare il profilo',
+            l.errorLoadProfile,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
@@ -171,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 16),
-          FilledButton(onPressed: _refresh, child: const Text('Riprova')),
+          FilledButton(onPressed: _refresh, child: Text(l.actionRetry)),
         ],
       ),
     );
